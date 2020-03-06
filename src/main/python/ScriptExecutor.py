@@ -74,9 +74,11 @@ class ScriptExecutor:
         self.password = QLineEdit()
         self.password.setPlaceholderText("Password")
         self.password.setEchoMode(QLineEdit.Password)
+        self.password.setFixedWidth(250)
 
         addCredential = QPushButton("+")
         addCredential.clicked.connect(self.multi_credential_dialogue)
+        addCredential.setFixedWidth(25)
 
         self.log = QCheckBox("&Log Execution")
         self.log.setChecked(True)
@@ -146,11 +148,9 @@ class ScriptExecutor:
             self.cred_win.setWindowTitle("Credentials")
             self.layout = QVBoxLayout()
 
-            self.add_cred_line()
-            self.add_cred_line()
-            self.add_cred_line()
-            self.add_cred_line()
-            self.add_cred_line()
+            addMore = QPushButton("+")
+            addMore.clicked.connect(self.addMoreCredentialObj)
+            addMore.setFixedWidth(25)
 
             button_ok = QPushButton("Ok")
             button_ok.clicked.connect(self.accept_window)
@@ -163,12 +163,16 @@ class ScriptExecutor:
             self.layout.addLayout(hLayout)
 
             hLayout = QHBoxLayout()
+
+            hLayout.addWidget(addMore)
             hLayout.addSpacerItem(QSpacerItem(80, 10, QSizePolicy.Expanding, QSizePolicy.Expanding))
             hLayout.addWidget(button_ok)
             hLayout.addWidget(button_cancel)
             self.layout.addLayout(hLayout)
 
             self.cred_win.setLayout(self.layout)
+
+            self.add_cred_line()
 
         user = self.username.text().rstrip().lstrip()
         if user != "" or self.password.text() != "":
@@ -202,38 +206,26 @@ class ScriptExecutor:
         username = QLineEdit()
         username.setPlaceholderText("Username")
 
-
         password = QLineEdit()
         password.setPlaceholderText("Password")
         password.setEchoMode(QLineEdit.Password)
 
-
-        # addMore = QPushButton("+")
-        # addMore.clicked.connect(self.addMoreCredentialObj())
-
-        # if self.credential_count == 1:
-        #     lblUser = QLabel("User name*")
-        #     lblUser.setBuddy(username)
-        #     lblpass = QLabel("Password")
-        #     lblpass.setBuddy(password)
-        #     hLayout = QHBoxLayout()
-        #     hLayout.addWidget(QLabel(""))
-        #     hLayout.addWidget(lblUser)
-        #     hLayout.addWidget(lblpass)
-        #     self.layout.addLayout(hLayout)
-
         hLayout = QHBoxLayout()
-        hLayout.addWidget(QLabel("Credential " + str(self.credential_count) + "      "))
+        hLayout.addWidget(QLabel("Credential " + ("  " if self.credential_count < 10 else "") + str(self.credential_count) + "      "))
         hLayout.addWidget(username)
         hLayout.addWidget(password)
-        # hLayout.addWidget(addMore)
         hLayout.setProperty("COUNT", self.credential_count)
-        self.layout.addLayout(hLayout)
+        self.layout.insertLayout(0 + self.credential_count - 2, hLayout)
+        username.setFocus()
 
         self.multi_credential[str(self.credential_count)] = {USER: username, PASS: password}
 
     def addMoreCredentialObj(self):
-        self.add_cred_line()
+        credObj = self.multi_credential[str(self.credential_count)]
+        if credObj[USER].text().rstrip().lstrip() != "" or credObj[PASS].text().rstrip().lstrip() != "":
+            self.add_cred_line()
+        else:
+            credObj[USER].setFocus()
 
     def getExecutorLayout(self):
         return self.gridLayout

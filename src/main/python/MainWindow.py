@@ -1,10 +1,12 @@
 from PyQt5.QtGui import QIcon, QKeySequence
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QStatusBar, QListView, QLabel, QTabWidget, QMainWindow,
+from PyQt5.QtWidgets import (QStatusBar, QListView, QTabWidget, QMainWindow,
                              QToolBar, QToolButton, QDockWidget, QAction,
-                             QComboBox, QApplication, QStyleFactory, QWidget)
-from ScriptExecutor import ScriptExecutor
+                             QApplication, QStyleFactory, QWidget, QPushButton)
 from fbs_runtime.application_context.PyQt5 import ApplicationContext
+
+from ScriptExecutor import ScriptExecutor
+# from CustumTabWidget import CustomTabWidget
 
 RESOURCE_FILE_PATH = "../resources/"
 
@@ -12,12 +14,15 @@ class MainWindowGui(QMainWindow):
     def __init__(self, parent=None):
         self.appctxt = ApplicationContext()
         super(MainWindowGui, self).__init__(parent)
-        self.setWindowTitle("MikroScript V2.0")
+        self.setWindowTitle("MikroScript")
         self.resize(1128, 768)
         self.setMinimumSize(800,600)
         self.setWindowIcon(QIcon(self.appctxt.get_resource("favicon.png")))
-        self.tabCtr = 0
 
+        self.tabCtr = 0
+        self.tabview = QTabWidget()
+
+        self.changeStyle('Windows')
         self.createMenuBar()
         self.createLeftArea()
         self.createBottomArea()
@@ -36,11 +41,15 @@ class MainWindowGui(QMainWindow):
         # mainLayout.setColumnStretch(1, 1)
         # mainLayout.setColumnStretch(2, 1)
 
-        self.tabview = QTabWidget()
+        # self.plusButton.setFixedSize(20, 20)  # Small Fixed size
+        addButton = QPushButton(QIcon(self.appctxt.get_resource("add-24px.svg")), "")
+        addButton.clicked.connect(self.ActionNew)
+
         self.tabview.setMovable(True)
         self.tabview.setTabsClosable(True)
         self.tabview.tabCloseRequested.connect(self.removeTab)
-        # self.tabview.setShortcut(QKeySequence.close)
+        self.tabview.setCornerWidget(addButton)
+        # self.tabview = CustomTabWidget()
         self.setCentralWidget(self.tabview)
         self.ActionNew()
 
@@ -51,6 +60,7 @@ class MainWindowGui(QMainWindow):
             tab = QWidget()
             center = ScriptExecutor()
             result = center.getExecutorLayout()
+
             tab.setLayout(result)
             tab.setProperty("OBJECT", center)
             tab.setProperty("TAB_CTR", self.tabCtr)
@@ -73,9 +83,9 @@ class MainWindowGui(QMainWindow):
         actNew.triggered.connect(self.ActionNew)
         actNew.setShortcut(QKeySequence.New)
 
-        actOpen = QAction(QIcon(self.appctxt.get_resource("outline_folder_black_18dp.png")), "&Open")
-        actOpen.triggered.connect(self.ActionOpen)
-        actOpen.setShortcut(QKeySequence.Open)
+        # actOpen = QAction(QIcon(self.appctxt.get_resource("outline_folder_black_18dp.png")), "&Open")
+        # actOpen.triggered.connect(self.ActionOpen)
+        # actOpen.setShortcut(QKeySequence.Open)
 
         actSave = QAction(QIcon(self.appctxt.get_resource("outline_save_black_18dp.png")), "&Save")
         actSave.triggered.connect(self.ActionSave)
@@ -89,50 +99,60 @@ class MainWindowGui(QMainWindow):
         actExecute.triggered.connect(self.ActionExecute)
         actExecute.setShortcut(QKeySequence.Refresh)
 
+        actPause = QAction(QIcon(self.appctxt.get_resource("pause_circle_outline-24px.svg")), "Pause")
+        actPause.triggered.connect(self.ActionPause)
+        actPause.setShortcut(QKeySequence.Refresh)
+
+        actStop = QAction(QIcon(self.appctxt.get_resource("stop-24px.svg")), "Stop")
+        actStop.triggered.connect(self.ActionStop)
+        actStop.setShortcut(QKeySequence.Refresh)
+
         actReset = QAction(QIcon(self.appctxt.get_resource("outline_replay_black_18dp.png")), "&Reset")
         actReset.triggered.connect(self.ActionReset)
         actReset.setShortcut(QKeySequence.Replace)
+        # self.appctxt.app_icon =
 
-        actCut = QAction(QIcon(self.appctxt.get_resource("outline_file_copy_black_18dp.png")), "Cu&t")
-        actCut.setShortcut(QKeySequence.Cut)
+        # actCut = QAction(QIcon(self.appctxt.get_resource("outline_file_copy_black_18dp.png")), "Cu&t")
+        # actCut.setShortcut(QKeySequence.Cut)
+        #
+        # actCopy = QAction(QIcon(self.appctxt.get_resource("outline_insert_drive_file_black_18dp.png")), "&Copy")
+        # actCopy.setShortcut(QKeySequence.Copy)
+        #
+        # actPaste = QAction(QIcon(self.appctxt.get_resource("outline_insert_drive_file_black_18dp.png")), "&Paste")
+        # actPaste.setShortcut(QKeySequence.Paste)
 
-        actCopy = QAction(QIcon(self.appctxt.get_resource("outline_insert_drive_file_black_18dp.png")), "&Copy")
-        actCopy.setShortcut(QKeySequence.Copy)
+        # actAbout = QAction("&About")
 
-        actPaste = QAction(QIcon(self.appctxt.get_resource("outline_insert_drive_file_black_18dp.png")), "&Paste")
-        actPaste.setShortcut(QKeySequence.Paste)
 
-        actAbout = QAction("&About")
+        # menuFile = self.menuBar().addMenu("&File")
+        # menuFile.addAction(actNew)
+        # # menuFile.addAction(actOpen)
+        # menuFile.addAction(actSave)
+        # menuFile.addSeparator()
+        # menuFile.addAction(actQuit)
 
-        menuFile = self.menuBar().addMenu("&File")
-        menuFile.addAction(actNew)
-        menuFile.addAction(actOpen)
-        menuFile.addAction(actSave)
-        menuFile.addSeparator()
-        menuFile.addAction(actQuit)
+        # menuEdit = self.menuBar().addMenu("&Edit")
+        # menuEdit.addAction(actCut)
+        # menuEdit.addAction(actCopy)
+        # menuEdit.addAction(actPaste)
 
-        menuEdit = self.menuBar().addMenu("&Edit")
-        menuEdit.addAction(actCut)
-        menuEdit.addAction(actCopy)
-        menuEdit.addAction(actPaste)
+        # menuView = self.menuBar().addMenu("&View")
+        # menuRun = self.menuBar().addMenu("&Run")
+        # menuRun.addAction(actExecute)
+        # menuWin = self.menuBar().addMenu("&Window")
 
-        menuView = self.menuBar().addMenu("&View")
-        menuRun = self.menuBar().addMenu("&Run")
-        menuRun.addAction(actExecute)
-        menuWin = self.menuBar().addMenu("&Window")
-
-        menuHelp = self.menuBar().addMenu("Help")
-        menuHelp.addAction(actAbout)
+        # menuHelp = self.menuBar().addMenu("Help")
+        # menuHelp.addAction(actAbout)
 
         ###################################################################
 
         toolbtnNew = QToolButton()
         toolbtnNew.setDefaultAction(actNew)
-        toolbtnNew.setToolTip("New File")
+        toolbtnNew.setToolTip("New Job - CTRL + N")
 
-        toolbtnOpen = QToolButton()
-        toolbtnOpen.setDefaultAction(actOpen)
-        toolbtnOpen.setToolTip("Open File")
+        # toolbtnOpen = QToolButton()
+        # toolbtnOpen.setDefaultAction(actOpen)
+        # toolbtnOpen.setToolTip("Open File")
 
         toolbtnSave = QToolButton()
         toolbtnSave.setDefaultAction(actSave)
@@ -142,32 +162,39 @@ class MainWindowGui(QMainWindow):
         toolbtnExecute.setDefaultAction(actExecute)
         toolbtnExecute.setToolTip("Execute - F5")
 
+        toolbtnPause = QToolButton()
+        toolbtnPause.setDefaultAction(actPause)
+        toolbtnPause.setToolTip("Pause")
+
+        toolbtnStop = QToolButton()
+        toolbtnStop.setDefaultAction(actStop)
+        toolbtnStop.setToolTip("Stop")
+
         toolbtnReset = QToolButton()
         toolbtnReset.setDefaultAction(actReset)
         toolbtnReset.setToolTip("Reset")
 
-        styleComboBox = QComboBox()
-        styleComboBox.addItems(QStyleFactory.keys())
+        # styleComboBox = QComboBox()
+        # styleComboBox.addItems(QStyleFactory.keys())
 
-        styleLabel = QLabel("&Style:")
-        styleLabel.setBuddy(styleComboBox)
-        styleComboBox.activated[str].connect(self.changeStyle)
+        # styleLabel = QLabel("&Style:")
+        # styleLabel.setBuddy(styleComboBox)
+        # styleComboBox.activated[str].connect(self.changeStyle)
 
-        toolBar = QToolBar()
-        toolBar.addWidget(toolbtnNew)
-        toolBar.addWidget(toolbtnOpen)
-        toolBar.addWidget(toolbtnSave)
-        toolBar.addSeparator()
-        toolBar.addWidget(toolbtnExecute)
-        toolBar.addWidget(toolbtnReset)
-        toolBar.setMovable(False)
-        toolBar.addSeparator()
-        toolBar.addWidget(styleLabel)
-        toolBar.addWidget(styleComboBox)
-
-        self.addToolBar(toolBar)
-
-        self.changeStyle('Fusion')
+        self.toolBar = QToolBar()
+        self.toolBar.addWidget(toolbtnNew)
+        # toolBar.addWidget(toolbtnOpen)
+        self.toolBar.addWidget(toolbtnSave)
+        self.toolBar.addSeparator()
+        self.toolBar.addWidget(toolbtnExecute)
+        self.toolBar.addWidget(toolbtnPause)
+        self.toolBar.addWidget(toolbtnStop)
+        self.toolBar.addWidget(toolbtnReset)
+        self.toolBar.setMovable(False)
+        self.toolBar.addSeparator()
+        # toolBar.addWidget(styleLabel)
+        # toolBar.addWidget(styleComboBox)
+        self.addToolBar(self.toolBar)
 
     def createLeftArea(self):
         listView = QListView()
@@ -178,7 +205,7 @@ class MainWindowGui(QMainWindow):
         # LeftArea.(tabBar)
         docWidget = QDockWidget("Script Jobs")
         docWidget.setWidget(listView)
-        docWidget.DockWidgetFeatures(QDockWidget.DockWidgetVerticalTitleBar)
+        # docWidget.DockWidgetFeatures(QDockWidget.DockWidgetVerticalTitleBar | QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetClosable)
         docWidget.setFloating(False)
         self.addDockWidget(Qt.LeftDockWidgetArea, docWidget, Qt.Vertical)
 
@@ -197,6 +224,12 @@ class MainWindowGui(QMainWindow):
         if current_tab_index >= 0:
             tab = self.tabview.currentWidget()
             tab.property("OBJECT").Execute()
+
+    def ActionPause(self):
+        print("Pause")
+
+    def ActionStop(self):
+        print("Stop")
 
     def ActionReset(self):
         print("Reset")
