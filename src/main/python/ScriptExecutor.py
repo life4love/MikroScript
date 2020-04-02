@@ -1,10 +1,11 @@
 # from PyQt5.QtCore import QRegExp
 import time
 
+from PyQt5.QtGui import QIcon, QKeySequence
 from PyQt5.QtWidgets import (QLineEdit, QRadioButton, QTabWidget, QWidget, QHBoxLayout,
                              QGridLayout, QLabel, QPlainTextEdit, QCheckBox, QPushButton, QDialog, QFormLayout,
-                             QVBoxLayout, QSpacerItem, QSizePolicy)
-from PyQt5 import QtGui, QtCore
+                             QVBoxLayout, QSpacerItem, QSizePolicy, QToolBar, QAction, QToolButton, QGroupBox)
+from PyQt5 import QtCore
 import math
 import datetime
 import paramiko
@@ -12,8 +13,10 @@ import threading
 from netaddr import *
 import paramiko.ssh_exception as para
 import socket
-
+from fbs_runtime.application_context.PyQt5 import ApplicationContext
 from primitive import *
+
+from component.BQLineEdit import BQLineEdit
 
 SSH_PORT = 22
 USER = "user"
@@ -26,28 +29,95 @@ DEFAULT_TELNET = "23"
 
 class ScriptExecutor:
     def __init__(self):
+        self.appctxt = ApplicationContext()
+        self.master_layout = QVBoxLayout()
+
         self.execute = None
         self.multi_credential = {}
         self.credentials = {}
         self.cred_win = None
         if is_env_dev():
+            # self.createToolBar()
             self.create_properties()
         else:
             try:
+                # self.createToolBar()
                 self.create_properties()
             except Exception:
                 raise
+
+    def createToolBar(self):
+
+        actSave = QAction(QIcon(self.appctxt.get_resource("outline_save_black_18dp.png")), "&Save")
+        actSave.triggered.connect(self.ActionSave)
+        actSave.setShortcut(QKeySequence.Save)
+
+        actQuit = QAction(QIcon(self.appctxt.get_resource("outline_exit_to_app_black_18dp.png")), "&Quit")
+        actQuit.triggered.connect(self.ActionQuit)
+        actQuit.setShortcut(QKeySequence.Quit)
+
+        actExecute = QAction(QIcon(self.appctxt.get_resource("outline_play_circle_outline_black_18dp.png")), "E&xecute")
+        actExecute.triggered.connect(self.ActionExecute)
+        actExecute.setShortcut(QKeySequence.Refresh)
+
+        actPause = QAction(QIcon(self.appctxt.get_resource("pause_circle_outline-24px.svg")), "Pause")
+        actPause.triggered.connect(self.ActionPause)
+        actPause.setShortcut(QKeySequence.Refresh)
+
+        actStop = QAction(QIcon(self.appctxt.get_resource("stop-24px.svg")), "Stop")
+        actStop.triggered.connect(self.ActionStop)
+        actStop.setShortcut(QKeySequence.Refresh)
+
+        actReset = QAction(QIcon(self.appctxt.get_resource("outline_replay_black_18dp.png")), "&Reset")
+        actReset.triggered.connect(self.ActionReset)
+        actReset.setShortcut(QKeySequence.Replace)
+
+        toolbtnSave = QToolButton()
+        toolbtnSave.setDefaultAction(actSave)
+        toolbtnSave.setToolTip("Save File")
+
+        toolbtnExecute = QToolButton()
+        toolbtnExecute.setDefaultAction(actExecute)
+        toolbtnExecute.setToolTip("Execute - F5")
+
+        toolbtnPause = QToolButton()
+        toolbtnPause.setDefaultAction(actPause)
+        toolbtnPause.setToolTip("Pause")
+
+        toolbtnStop = QToolButton()
+        toolbtnStop.setDefaultAction(actStop)
+        toolbtnStop.setToolTip("Stop")
+
+        toolbtnReset = QToolButton()
+        toolbtnReset.setDefaultAction(actReset)
+        toolbtnReset.setToolTip("Reset")
+
+        self.toolBar = QToolBar()
+        self.toolBar.addWidget(toolbtnSave)
+        self.toolBar.addSeparator()
+        self.toolBar.addWidget(toolbtnExecute)
+        self.toolBar.addWidget(toolbtnPause)
+        self.toolBar.addWidget(toolbtnStop)
+        self.toolBar.addWidget(toolbtnReset)
+        self.toolBar.setMovable(False)
+        self.toolBar.addSeparator()
+        hLayout = QHBoxLayout()
+        hLayout.addWidget(self.toolBar)
+        self.master_layout.addLayout(hLayout)
+
+        # self.addToolBar(self.toolBar)
 
     def create_properties(self):
         self.host = QLineEdit()
         # self.host.setValidator(self.validateHost)
         # self.host.setInputMask("000.000.000.000-000.000.000.000")
 
-        lblhost = QLabel("&Host*: (name, ip-address, ip-range or subnet-mask)")
+        lblhost = QLabel("&Host* (name, ip-address, ip-range or subnet-mask)")
         lblhost.setBuddy(self.host)
         self.FirstWidget = self.host
 
         self.portNumber = QLineEdit()
+        self.portNumber.setFixedWidth(100)
 
         self.ssh = QRadioButton("SSH")
         self.telnet = QRadioButton("Telnet")
@@ -59,13 +129,15 @@ class ScriptExecutor:
         self.timeout.setPlaceholderText("Timeout")
         self.timeout.setInputMask("00")
         self.timeout.setText("5")
+        self.timeout.setFixedWidth(50)
 
         self.session = QLineEdit()
         self.session.setPlaceholderText("Session")
         self.session.setInputMask("00")
         self.session.setText("1")
+        self.session.setFixedWidth(50)
 
-        self.username = QLineEdit()
+        self.username = BQLineEdit()
         self.username.setPlaceholderText("Username")
 
         lblUser = QLabel("&User name*")
@@ -87,59 +159,127 @@ class ScriptExecutor:
         self.skipError.setChecked(True)
 
         self.script = QPlainTextEdit()
+        self.script.setStyleSheet("{ height: 100px}")
 
         lblScript = QLabel("&Script*")
         lblScript.setBuddy(self.script)
 
         self.add_result_tabs()
 
-        self.gridLayout = QGridLayout()
-        # self.gridLayout.setColumnMinimumWidth(4, 4)
-        self.gridLayout.addWidget(lblhost, 0, 0)
-        self.gridLayout.addWidget(self.host, 1, 0)
+        hLayout = QHBoxLayout()
+        hLayout.addWidget(lblhost)
+        hLayout.addWidget(QLabel("Connection type"))
+        hLayout.addWidget(QLabel("Port"))
 
-        self.gridLayout.addWidget(QLabel("Connection type"), 0, 2)
-        self.gridLayout.addWidget(self.ssh, 1, 2)
-        self.gridLayout.addWidget(self.telnet, 1, 3)
 
-        self.gridLayout.addWidget(QLabel("Port number"), 0, 4)
-        self.gridLayout.addWidget(self.portNumber, 1, 4)
 
-        self.gridLayout.addWidget(lblUser, 2, 0)
-        self.gridLayout.addWidget(self.username, 3, 0)
+        host_gBox = QGroupBox("")
+        vLayout = QVBoxLayout()
+        hLayout = QHBoxLayout()
+        hLayout.addWidget(self.host)
+        hLayout.addWidget(QLabel("Session"))
+        hLayout.addWidget(self.session)
 
-        self.gridLayout.addWidget(QLabel("Password"), 2, 2)
-        self.gridLayout.addWidget(self.password, 3, 2)
-        self.gridLayout.addWidget(addCredential, 3, 3)
+        vLayout.addWidget(lblhost)
+        vLayout.addLayout(hLayout)
 
-        self.gridLayout.addWidget(lblScript, 5, 0)
-        self.gridLayout.addWidget(self.log, 5, 2)
-        self.gridLayout.addWidget(self.skipError, 5, 3)
+        hLayout = QHBoxLayout()
+        hLayout.addWidget(QLabel("Connection type: "))
+        hLayout.addWidget(self.ssh)
+        hLayout.addWidget(self.telnet)
+        hLayout.addWidget(self.portNumber)
+        hLayout.addWidget(QLabel("Timeout"))
+        hLayout.addWidget(self.timeout)
+        vLayout.addLayout(hLayout)
+        host_gBox.setLayout(vLayout)
+        # self.master_layout.addLayout(hLayout)
 
-        self.gridLayout.addWidget(QLabel("Timeout"), 4, 4)
-        self.gridLayout.addWidget(self.timeout, 5, 4)
 
-        self.gridLayout.addWidget(QLabel("Session"), 4, 5)
-        self.gridLayout.addWidget(self.session, 5, 5)
 
-        self.gridLayout.addWidget(self.script, 6, 0, 1, 7)
-        self.gridLayout.addWidget(self.tabview, 7, 0, 1, 7)
 
-        self.gridLayout.setColumnStretch(0, 1)
-        # self.gridLayout.setColumnStretch(3, 2)
 
-        # print("Column Count 2: " + str(self.gridLayout.columnCount()))
-        # print("Row Count 2: " + str(self.gridLayout.rowCount()))
+        hLayout = QHBoxLayout()
+        hLayout.addWidget(lblUser)
+        hLayout.addWidget(QLabel("Password"))
+        # self.master_layout.addLayout(hLayout)
+
+        cred_gBox = QGroupBox("")
+        vLayout = QVBoxLayout()
+        hLayout = QHBoxLayout()
+        vLayout.addWidget(lblUser)
+        vLayout.addWidget(self.username)
+        hLayout.addWidget(self.password)
+        hLayout.addWidget(addCredential)
+        vLayout.addLayout(hLayout)
+        cred_gBox.setLayout(vLayout)
+        hLayout = QHBoxLayout()
+        hLayout.addWidget(cred_gBox)
+        hLayout.addWidget(host_gBox)
+        self.master_layout.addLayout(hLayout)
+
+        hLayout = QHBoxLayout()
+        hLayout.addWidget(lblScript)
+        hLayout.addWidget(self.log)
+        hLayout.addWidget(self.skipError)
+        self.master_layout.addLayout(hLayout)
+
+        hLayout = QHBoxLayout()
+        hLayout.addWidget(self.script)
+        self.master_layout.addLayout(hLayout)
+
+        hLayout = QHBoxLayout()
+        hLayout.addWidget(self.tabview)
+        self.master_layout.addLayout(hLayout)
+
+
+        # self.gridLayout.addWidget(lblScript, 5, 0)
+        # self.gridLayout.addWidget(self.log, 5, 2)
+        # self.gridLayout.addWidget(self.skipError, 5, 3)
         #
-        # print("Column 1: " + str(self.gridLayout.columnStretch(0)))
-        # print("Column 2: " + str(self.gridLayout.columnStretch(1)))
-        # print("Column 3: " + str(self.gridLayout.columnStretch(2)))
-        # print("Column 4: " + str(self.gridLayout.columnStretch(3)))
-        # print("Column 5: " + str(self.gridLayout.columnStretch(4)))
-        # print("Column 6: " + str(self.gridLayout.columnStretch(5)))
-        # print("Column 7: " + str(self.gridLayout.columnStretch(6)))
-        # print("Column 8: " + str(self.gridLayout.columnStretch(7)))
-        # print("Horizontal Spacing : " + str(self.gridLayout.horizontalSpacing()))
+        # self.gridLayout.addWidget(QLabel("Timeout"), 4, 4)
+        # self.gridLayout.addWidget(self.timeout, 5, 4)
+        #
+        # self.gridLayout.addWidget(QLabel("Session"), 4, 5)
+        # self.gridLayout.addWidget(self.session, 5, 5)
+        #
+        # self.gridLayout.addWidget(self.script, 6, 0, 1, 7)
+        # self.gridLayout.addWidget(self.tabview, 7, 0, 1, 7)
+
+
+        # self.gridLayout = QGridLayout()
+        # # self.gridLayout.setColumnMinimumWidth(4, 4)
+        # self.gridLayout.addWidget(lblhost, 0, 0)
+        # self.gridLayout.addWidget(self.host, 1, 0)
+        #
+        # self.gridLayout.addWidget(QLabel("Connection type"), 0, 2)
+        # self.gridLayout.addWidget(self.ssh, 1, 2)
+        # self.gridLayout.addWidget(self.telnet, 1, 3)
+        #
+        # self.gridLayout.addWidget(QLabel("Port number"), 0, 4)
+        # self.gridLayout.addWidget(self.portNumber, 1, 4)
+        #
+        # self.gridLayout.addWidget(lblUser, 2, 0)
+        # self.gridLayout.addWidget(self.username, 3, 0)
+        #
+        # self.gridLayout.addWidget(QLabel("Password"), 2, 2)
+        # self.gridLayout.addWidget(self.password, 3, 2)
+        # self.gridLayout.addWidget(addCredential, 3, 3)
+        #
+        # self.gridLayout.addWidget(lblScript, 5, 0)
+        # self.gridLayout.addWidget(self.log, 5, 2)
+        # self.gridLayout.addWidget(self.skipError, 5, 3)
+        #
+        # self.gridLayout.addWidget(QLabel("Timeout"), 4, 4)
+        # self.gridLayout.addWidget(self.timeout, 5, 4)
+        #
+        # self.gridLayout.addWidget(QLabel("Session"), 4, 5)
+        # self.gridLayout.addWidget(self.session, 5, 5)
+        #
+        # self.gridLayout.addWidget(self.script, 6, 0, 1, 7)
+        # self.gridLayout.addWidget(self.tabview, 7, 0, 1, 7)
+        #
+        # self.gridLayout.setColumnStretch(0, 1)
+
 
     def multi_credential_dialogue(self):
         if self.cred_win == None:
@@ -203,7 +343,7 @@ class ScriptExecutor:
 
     def add_cred_line(self):
         self.credential_count += 1
-        username = QLineEdit()
+        username = BQLineEdit()
         username.setPlaceholderText("Username")
 
         password = QLineEdit()
@@ -228,7 +368,7 @@ class ScriptExecutor:
             credObj[USER].setFocus()
 
     def getExecutorLayout(self):
-        return self.gridLayout
+        return self.master_layout
 
     def host_reg_ex(self):
         print("regEx")
@@ -263,8 +403,9 @@ class ScriptExecutor:
 
         if host == "" or user == "" or script == "":
             validated = False
-            self.result.appendPlainText("Mandatory fields are empty. Either Host, Username or Script is empty!")
-            self.result.appendPlainText("Execution didn't got started.")
+            self.result.appendPlainText("Mandatory fields are empty. Please specify mandatory fields that are "
+                                        "Host, Username or Script.")
+            # self.result.appendPlainText("Execution didn't got started.")
 
         return validated
 
@@ -290,6 +431,46 @@ class ScriptExecutor:
         tabHBox.setContentsMargins(1, 1, 1, 1)
         tab.setLayout(tabHBox)
         self.tabview.addTab(tab, "General")
+
+    def get_job_data(self):
+        if self.validate_required_fields():
+            job_data = {
+                "host": self.host.text().lstrip().rstrip(),
+                "connection_type": "TELNET" if self.telnet.isChecked() else "SSH",
+                "port_number": self.portNumber.text().lstrip().rstrip(),
+                "timeout": self.timeout.text(),
+                "session": self.session.text(),
+                "skip_on_error": self.skipError.isChecked(),
+                "log_file": self.log.isChecked(),
+                "credential": self.credentials
+
+            }
+            return job_data
+        return {}
+
+    def ActionPause(self):
+        print("Pause")
+
+    def ActionStop(self):
+        print("Stop")
+
+    def ActionReset(self):
+        print("Reset")
+
+    def ActionQuit(self):
+        print("Quit")
+
+    def ActionSave(self):
+        print("Save")
+
+    def ActionExecute(self):
+        self.Execute()
+        # current_tab_index = self.tabview.currentIndex()
+        # if current_tab_index >= 0:
+        #     tab = self.tabview.currentWidget()
+        #     tab.property("OBJECT").Execute()
+
+
 
 
 class ExecuteScript:
@@ -397,8 +578,8 @@ class ExecuteScript:
         end_time = datetime.datetime.now()
 
         self.append_result("Session execution finished at " + str(end_time) + " second", thread_name)
-        self.append_result("Total time consumed on this session is " + str(round(int(str(end_time - started_time)), 2)) + " seconds",
-                           thread_name)
+        # self.append_result("Total time consumed on this session is " + str(round(int(str(end_time - started_time)), 2)) + " seconds",
+        #                    thread_name)
 
     def execute_host_with_credential(self, thread_name, client, host, port):
         for i in self.parent.credentials:
