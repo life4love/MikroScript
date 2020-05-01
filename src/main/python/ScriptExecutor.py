@@ -1,11 +1,12 @@
 # from PyQt5.QtCore import QRegExp
 import time
 
-from PyQt5.QtGui import QIcon, QKeySequence
+from PyQt5.QtGui import QIcon, QKeySequence, QImage, QPixmap
 from PyQt5.QtWidgets import (QLineEdit, QRadioButton, QTabWidget, QWidget, QHBoxLayout,
                              QGridLayout, QLabel, QPlainTextEdit, QCheckBox, QPushButton, QDialog, QFormLayout,
                              QVBoxLayout, QSpacerItem, QSizePolicy, QToolBar, QAction, QToolButton, QGroupBox)
 from PyQt5 import QtCore
+from PyQt5.QtCore import Qt
 import math
 import datetime
 import paramiko
@@ -14,7 +15,7 @@ from netaddr import *
 import paramiko.ssh_exception as para
 import socket
 from fbs_runtime.application_context.PyQt5 import ApplicationContext
-from primitive import *
+from CSS import *
 
 from component.BQLineEdit import BQLineEdit
 
@@ -27,10 +28,13 @@ DEFAULT_RESULT_TAB = "General"
 DEFAULT_SSH = "22"
 DEFAULT_TELNET = "23"
 
+
 class ScriptExecutor:
     def __init__(self):
         self.appctxt = ApplicationContext()
         self.master_layout = QVBoxLayout()
+        self.credential_count = 1
+        self.layout = QVBoxLayout()
 
         self.execute = None
         self.multi_credential = {}
@@ -45,6 +49,13 @@ class ScriptExecutor:
                 self.create_properties()
             except Exception:
                 raise
+
+    def infoIconImg(self):
+
+        img = 'E:/Bizee/MikroScript/MikroScript-master/MikroScript-master/src/main/resources/base/info-24px.svg'
+        pixImg = QPixmap(img)
+        resizedPixImg = pixImg.scaled(19, 18, Qt.IgnoreAspectRatio, Qt.FastTransformation)
+        return resizedPixImg
 
     def createToolBar(self):
 
@@ -108,7 +119,15 @@ class ScriptExecutor:
         # self.addToolBar(self.toolBar)
 
     def create_properties(self):
-        self.host = QLineEdit()
+        self.host = BQLineEdit()
+
+        # Updated by Pinkesh Shah on 27-Apr-20
+        # Start Region
+        self.host.setMinimumWidth(300)
+        self.host.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.host.setAlignment(Qt.AlignRight)
+        # End Region
+
         # self.host.setValidator(self.validateHost)
         # self.host.setInputMask("000.000.000.000-000.000.000.000")
 
@@ -116,41 +135,92 @@ class ScriptExecutor:
         lblhost.setBuddy(self.host)
         self.FirstWidget = self.host
 
-        self.portNumber = QLineEdit()
+        self.portNumber = BQLineEdit()
         self.portNumber.setFixedWidth(100)
+
+        # Updated by Pinkesh Shah on 27-Apr-20
+        # Start Region
+        self.portNumber.setAlignment(Qt.AlignRight)
+        # End Region
 
         self.ssh = QRadioButton("SSH")
         self.telnet = QRadioButton("Telnet")
+
+        # Updated by Pinkesh Shah on 27-Apr-20
+        # Start Region
+        self.ssh.setFixedSize(45, 10)
+        self.telnet.setFixedSize(50, 10)
+        # End Region
+
         self.ssh.toggled.connect(lambda: self.portNumber.setText(DEFAULT_SSH))
         self.telnet.toggled.connect(lambda: self.portNumber.setText(DEFAULT_TELNET))
         self.ssh.setChecked(True)
 
-        self.timeout = QLineEdit()
+        self.timeout = BQLineEdit()
         self.timeout.setPlaceholderText("Timeout")
         self.timeout.setInputMask("00")
         self.timeout.setText("5")
         self.timeout.setFixedWidth(50)
 
-        self.session = QLineEdit()
+        # Updated by Pinkesh Shah on 27-Apr-20
+        # Start Region
+        self.timeout.setAlignment(Qt.AlignRight)
+        # End Region
+
+        self.session = BQLineEdit()
         self.session.setPlaceholderText("Session")
         self.session.setInputMask("00")
         self.session.setText("1")
         self.session.setFixedWidth(50)
 
+        # Updated by Pinkesh Shah on 27-Apr-20
+        # Start Region
+        self.session.setAlignment(Qt.AlignRight)
+        # End Region
+
         self.username = BQLineEdit()
         self.username.setPlaceholderText("Username")
+
+        # Updated by Pinkesh Shah on 24-Apr-20
+        # Start Region
+        self.username.setMinimumWidth(300)
+        # End Region
+
+        # Updated by Pinkesh Shah on 25-Apr-20
+        # Start Region
+        self.username.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        # End Region
 
         lblUser = QLabel("&User name*")
         lblUser.setBuddy(self.username)
 
-        self.password = QLineEdit()
+        # Updated by Pinkesh Shah on 25-Apr-20
+        # Start Region
+        lblUser.setFixedSize(70, 10)
+        # End Region
+
+        self.password = BQLineEdit()
         self.password.setPlaceholderText("Password")
         self.password.setEchoMode(QLineEdit.Password)
-        self.password.setFixedWidth(250)
+
+        # Updated by Pinkesh Shah on 24-Apr-20
+        # Start Region
+        self.password.setMinimumWidth(300)
+        # End Region
+
+        # Updated by Pinkesh Shah on 25-Apr-20
+        # Start Region
+        self.password.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        # End Region
 
         addCredential = QPushButton("+")
         addCredential.clicked.connect(self.multi_credential_dialogue)
         addCredential.setFixedWidth(25)
+
+        # Updated by Pinkesh Shah on 22-Apr-20
+        # Start Region
+        addCredential.setStyleSheet(CSS_BASE)
+        # End Region
 
         self.log = QCheckBox("&Log Execution")
         self.log.setChecked(True)
@@ -159,10 +229,23 @@ class ScriptExecutor:
         self.skipError.setChecked(True)
 
         self.script = QPlainTextEdit()
-        self.script.setStyleSheet("{ height: 100px}")
+        self.script.setStyleSheet(CSS_BASE)
 
         lblScript = QLabel("&Script*")
         lblScript.setBuddy(self.script)
+
+        # Updated by Pinkesh Shah on 18-Apr-20
+        # Start Region
+        lblScript.setMaximumWidth(35)
+        # End Region
+
+        # Updated by Pinkesh Shah on 18-Apr-20
+        # Start Region
+        imgLabel6 = QLabel()
+        imgLabel6.setPixmap(self.infoIconImg())
+        imgLabel6.setToolTip("Enter Script")
+        imgLabel6.setToolTipDuration(50000)
+        # End Region
 
         self.add_result_tabs()
 
@@ -171,14 +254,50 @@ class ScriptExecutor:
         hLayout.addWidget(QLabel("Connection type"))
         hLayout.addWidget(QLabel("Port"))
 
-
-
         host_gBox = QGroupBox("")
         vLayout = QVBoxLayout()
         hLayout = QHBoxLayout()
-        hLayout.addWidget(self.host)
-        hLayout.addWidget(QLabel("Session"))
-        hLayout.addWidget(self.session)
+
+        # Updated by Pinkesh Shah on 27-Apr-20
+        # Start Region
+        hLayout.addWidget(self.host, 0, Qt.AlignLeft)
+        # End Region
+
+        # Updated by Pinkesh Shah on 17-Apr-20
+        # Start Region
+        imgLabel2 = QLabel()
+        imgLabel2.setPixmap(self.infoIconImg())
+        imgLabel2.setToolTip("Enter Host")
+        imgLabel2.setToolTipDuration(50000)
+
+        # Updated by Pinkesh Shah on 27-Apr-20
+        # Start Region
+        hLayout.addWidget(imgLabel2, 0, Qt.AlignLeft)
+        # End Region
+
+        # End Region
+
+        # Updated by Pinkesh Shah on 27-Apr-20
+        # Start Region
+        hLayout.addSpacing(35)
+        # End Region
+
+        hLayout.addWidget(QLabel("Session"), 0, Qt.AlignLeft)
+        hLayout.addWidget(self.session, 0, Qt.AlignLeft)
+
+        # Updated by Pinkesh Shah on 17-Apr-20
+        # Start Region
+        imgLabel3 = QLabel()
+        imgLabel3.setPixmap(self.infoIconImg())
+        imgLabel3.setToolTip("Enter Session")
+        imgLabel3.setToolTipDuration(50000)
+        hLayout.addWidget(imgLabel3)
+        # End Region
+
+        # Updated by Pinkesh Shah on 27-Apr-20
+        # Start Region
+        hLayout.addStretch(0)
+        # End Region
 
         vLayout.addWidget(lblhost)
         vLayout.addLayout(hLayout)
@@ -188,38 +307,132 @@ class ScriptExecutor:
         hLayout.addWidget(self.ssh)
         hLayout.addWidget(self.telnet)
         hLayout.addWidget(self.portNumber)
+
+        # Updated by Pinkesh Shah on 17-Apr-20
+        # Start Region
+        imgLabel4 = QLabel()
+        imgLabel4.setPixmap(self.infoIconImg())
+        imgLabel4.setToolTip("Enter Port Number")
+        imgLabel4.setToolTipDuration(50000)
+        hLayout.addWidget(imgLabel4)
+        # End Region
+
+        # Updated by Pinkesh Shah on 17-Apr-20
+        # Start Region
+        hLayout.addSpacing(35)
+        # End Region
+
         hLayout.addWidget(QLabel("Timeout"))
         hLayout.addWidget(self.timeout)
+
+        # Updated by Pinkesh Shah on 17-Apr-20
+        # Start Region
+        imgLabel5 = QLabel()
+        imgLabel5.setPixmap(self.infoIconImg())
+        imgLabel5.setToolTip("Enter Host")
+        imgLabel5.setToolTipDuration(50000)
+        hLayout.addWidget(imgLabel5)
+        # End Region
+
+        # Updated by Pinkesh Shah on 27-Apr-20
+        # Start Region
+        hLayout.addStretch(0)
+        # End Region
+
         vLayout.addLayout(hLayout)
         host_gBox.setLayout(vLayout)
         # self.master_layout.addLayout(hLayout)
 
-
-
-
-
         hLayout = QHBoxLayout()
         hLayout.addWidget(lblUser)
-        hLayout.addWidget(QLabel("Password"))
+
+        # Updated by Pinkesh Shah on 25-Apr-20
+        # Start Region
+        # lblPass = QLabel("Password")
+        # End Region
+
+        # hLayout.addWidget(lblPass)
         # self.master_layout.addLayout(hLayout)
 
         cred_gBox = QGroupBox("")
         vLayout = QVBoxLayout()
         hLayout = QHBoxLayout()
-        vLayout.addWidget(lblUser)
-        vLayout.addWidget(self.username)
-        hLayout.addWidget(self.password)
-        hLayout.addWidget(addCredential)
+
+        # Updated by Pinkesh Shah on 17-Apr-20
+        # Start Region
+        # vLayout.addWidget(lblUser)
+        hLayout.addWidget(lblUser, 0, Qt.AlignLeft)
+        # vLayout.addWidget(self.username)
+        hLayout.addWidget(self.username)
+        # End Region
+
+        # Updated by Pinkesh Shah on 17-Apr-20
+        # Start Region
+        lblPassword = QLabel("Password*")
+        lblPassword.setBuddy(self.password)
+        lblPassword.setFixedSize(70, 10)
+        # End Region
+
+        hLayout1 = QHBoxLayout()
+        hLayout1.addWidget(lblPassword, 0, Qt.AlignLeft)
+        hLayout1.addWidget(self.password)
+
+        # Updated by Pinkesh Shah on 17-Apr-20
+        # Start Region
+        imgLabel1 = QLabel()
+        imgLabel1.setPixmap(self.infoIconImg())
+        imgLabel1.setToolTip("Enter Username")
+        imgLabel1.setToolTipDuration(50000)
+        hLayout.addWidget(imgLabel1)
+        # End Region
+
+        # Updated by Pinkesh Shah on 25-Apr-20
+        # Start Region
+        hLayout.addStretch(0)
+        # End Region
+
+        # Updated by Pinkesh Shah on 17-Apr-20
+        # Start Region
         vLayout.addLayout(hLayout)
+        vLayout.addLayout(hLayout1)
+        # End Region
+
+        hLayout1.addWidget(addCredential, 1, Qt.AlignCenter)
+
+        # Updated by Pinkesh Shah on 25-Apr-20
+        # Start Region
+        hLayout1.addStretch(0)
+        # End Region
+
+        # vLayout.addLayout(hLayout)
         cred_gBox.setLayout(vLayout)
+
         hLayout = QHBoxLayout()
         hLayout.addWidget(cred_gBox)
         hLayout.addWidget(host_gBox)
         self.master_layout.addLayout(hLayout)
 
         hLayout = QHBoxLayout()
+
         hLayout.addWidget(lblScript)
+
+        # Updated by Pinkesh Shah on 18-Apr-20
+        # Start Region
+        hLayout.addWidget(imgLabel6)
+        # End Region
+
+        # Updated by Pinkesh Shah on 29-Apr-20
+        # Start Region
+        hLayout.addSpacing(620)
+        # End Region
+
         hLayout.addWidget(self.log)
+
+        # Updated by Pinkesh Shah on 29-Apr-20
+        # Start Region
+        hLayout.addSpacing(40)
+        # End Region
+
         hLayout.addWidget(self.skipError)
         self.master_layout.addLayout(hLayout)
 
@@ -230,7 +443,6 @@ class ScriptExecutor:
         hLayout = QHBoxLayout()
         hLayout.addWidget(self.tabview)
         self.master_layout.addLayout(hLayout)
-
 
         # self.gridLayout.addWidget(lblScript, 5, 0)
         # self.gridLayout.addWidget(self.log, 5, 2)
@@ -244,7 +456,6 @@ class ScriptExecutor:
         #
         # self.gridLayout.addWidget(self.script, 6, 0, 1, 7)
         # self.gridLayout.addWidget(self.tabview, 7, 0, 1, 7)
-
 
         # self.gridLayout = QGridLayout()
         # # self.gridLayout.setColumnMinimumWidth(4, 4)
@@ -280,16 +491,15 @@ class ScriptExecutor:
         #
         # self.gridLayout.setColumnStretch(0, 1)
 
-
     def multi_credential_dialogue(self):
         if self.cred_win == None:
-            self.credential_count = 1
             self.cred_win = QDialog(None, QtCore.Qt.WindowTitleHint)
             self.cred_win.setWindowTitle("Credentials")
-            self.layout = QVBoxLayout()
 
             addMore = QPushButton("+")
             addMore.clicked.connect(self.addMoreCredentialObj)
+            # addMore.doubleClicked.connect(self.addMoreCredentialObj)
+            # addMore.mouseDoubleClickEvent(self.addMoreCredentialObj)
             addMore.setFixedWidth(25)
 
             button_ok = QPushButton("Ok")
@@ -325,7 +535,7 @@ class ScriptExecutor:
         for i in self.multi_credential:
             cred = self.multi_credential[str(i)]
             user = cred[USER]
-            pwd  = cred[PASS]
+            pwd = cred[PASS]
             if user.text() != "" or pwd.text() != "":
                 self.credentials[str(i)] = {USER: user.text().lstrip().rstrip(), PASS: pwd.text()}
             elif str(i) in self.credentials:
@@ -357,8 +567,8 @@ class ScriptExecutor:
         hLayout.setProperty("COUNT", self.credential_count)
         self.layout.insertLayout(0 + self.credential_count - 2, hLayout)
         username.setFocus()
-
         self.multi_credential[str(self.credential_count)] = {USER: username, PASS: password}
+
 
     def addMoreCredentialObj(self):
         credObj = self.multi_credential[str(self.credential_count)]
@@ -425,6 +635,7 @@ class ScriptExecutor:
     def add_result_tabs(self):
         self.tabview = QTabWidget()
         self.result = QPlainTextEdit()
+        self.result.setStyleSheet(CSS_BASE)
         tab = QWidget()
         tabHBox = QHBoxLayout()
         tabHBox.addWidget(self.result)
@@ -448,6 +659,54 @@ class ScriptExecutor:
             return job_data
         return {}
 
+    def LoadData(self, job_data):
+        self.host.setText(job_data.get("host"))
+        self.portNumber.setText(job_data.get("port_number"))
+
+        # Updated by Pinkesh Shah on 19-Apr-20
+        # Start Region
+
+        credential = job_data.get("credential")
+        print("Credential: ", credential)
+        self.credentials = credential
+        cred_count = len(self.credentials)
+        for i in range(cred_count):
+            if i == 1:
+                self.username.setText(credential.get("1").get(USER))
+                self.password.setText(credential.get("1").get(PASS))
+            else:
+                self.add_cred_line()
+
+        self.load_credential()
+
+        # for cred in credential:
+        # center.script.setText(job_data["port_number"])
+        # End Region
+        self.timeout.setText(job_data.get("timeout"))
+        self.session.setText(job_data.get("session"))
+
+        connectionType = job_data.get("connection_type")
+        if connectionType == "TELNET":
+            self.telnet.setChecked(True)
+        else:
+            self.ssh.setChecked(True)
+
+        logExec = job_data.get("log_file")
+        if logExec:
+            self.log.setChecked(True)
+        else:
+            self.log.setChecked(False)
+
+        skipError = job_data.get("skip_on_error")
+        if skipError:
+            self.skipError.setChecked(True)
+        else:
+            self.skipError.setChecked(False)
+
+        print("Step 1   : Calling multi_credential_dialogue() which opens Multi Credential Window")
+        # self.multi_credential_dialogue()
+        # self.pinkesh(credential)
+
     def ActionPause(self):
         print("Pause")
 
@@ -469,8 +728,6 @@ class ScriptExecutor:
         # if current_tab_index >= 0:
         #     tab = self.tabview.currentWidget()
         #     tab.property("OBJECT").Execute()
-
-
 
 
 class ExecuteScript:

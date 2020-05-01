@@ -1,5 +1,6 @@
 import json
 import sqlite3
+from functools import partial
 from datetime import datetime
 from PyQt5.QtGui import QIcon, QKeySequence, QLinearGradient, QImage, QPixmap
 from PyQt5.QtCore import Qt
@@ -7,11 +8,11 @@ from PyQt5.QtWidgets import (QStatusBar, QTabWidget, QMainWindow,
                              QToolBar, QToolButton, QDockWidget, QAction,
                              QApplication, QStyleFactory, QWidget, QPushButton, QGraphicsView, QListView, QHBoxLayout,
                              QVBoxLayout, QFrame, QLabel, QScrollArea, QAbstractScrollArea, QGroupBox, QDialog,
-                             QSpacerItem, QSizePolicy, QTreeView)
+                             QSpacerItem, QSizePolicy, QTreeView, QMessageBox)
 from fbs_runtime.application_context.PyQt5 import ApplicationContext
 
 from ScriptExecutor import ScriptExecutor
-import primitive
+import CSS
 # from CustumTabWidget import CustomTabWidget
 from component.BQLineEdit import BQLineEdit
 from save_window import SaveWindow
@@ -29,21 +30,26 @@ class MainWindowGui(QMainWindow):
         self.appctxt = ApplicationContext()
         super(MainWindowGui, self).__init__(parent)
         self.setWindowTitle("MikroScript")
-        self.setStyleSheet(primitive.CSS_BASE)
+        self.setStyleSheet(CSS.CSS_BASE)
         self.resize(1128, 768)
         self.setMinimumSize(800,600)
         self.setWindowIcon(QIcon(self.appctxt.get_resource("favicon.png")))
 
+        # Updated by Pinkesh Shah on 29-Apr-20
+        # Start Region
+        self.activeJobTabs = []
+        # End Region
+
         self.tabCtr = 0
         self.tabview = QTabWidget()
-        self.tabview.setStyleSheet(primitive.CSS_TAB)
+        self.tabview.setStyleSheet(CSS.CSS_TAB)
 
         self.conn = sqlite3.connect("MikroScript.db")
 
         self.changeStyle('Windows')
         self.createMenuBar()
         self.tree_dock_widget()
-        # self.card_dock_widget()
+        self.card_dock_widget()
         self.create_dock_widget_area()
         # self.createBottomArea()
 
@@ -72,13 +78,14 @@ class MainWindowGui(QMainWindow):
         # self.tabview = CustomTabWidget()
         self.setCentralWidget(self.tabview)
         self.ActionNew()
+        self.get_job_list()
 
-    def ActionNew(self):
+    def ActionNew(self, name=None):
 
         try:
             self.tabCtr += 1
             tab = QWidget()
-            tab.setStyleSheet(primitive.CSS_TAB_BASE)
+            tab.setStyleSheet(CSS.CSS_TAB_BASE)
             # tab.setStyleSheet("{ border-style: solid; background-color:#FBFBFB }")
             center = ScriptExecutor()
             result = center.getExecutorLayout()
@@ -89,14 +96,26 @@ class MainWindowGui(QMainWindow):
             tab.setProperty("NAME", "")
             tab.setProperty("_ID", 0)
             # center.getFirstWidget().setFocus(Qt.ActiveWindowFocusReason)
-            self.tabview.addTab(tab, "Untitled " + str(self.tabCtr))
+            if name == None:
+                name = "Untitled " + str(self.tabCtr)
+            self.tabview.addTab(tab, name)
             self.tabview.setCurrentWidget(tab)
             center.host.setFocus()
         except Exception:
             raise
+        return tab
 
     def removeTab(self, index):
         tab = self.tabview.widget(index)
+
+        # Updated by Pinkesh Shah on 30-Apr-20
+        # Start Region
+        tab_Name = self.tabview.tabText(index)
+        print("Tab Name while closing tab:", tab_Name)
+        self.activeJobTabs.remove(tab_Name)
+        print("Active Jobs after closing tabs:", self.activeJobTabs)
+        # End Region
+
         if tab is not None:
             tab = None
             self.tabview.removeTab(index)
@@ -222,16 +241,26 @@ class MainWindowGui(QMainWindow):
     def build_job_frame(self, name):
         job_frame = QFrame()
         # job_frame.   connect(self.load_job)
-        job_frame.setMinimumSize(220, 50)
+        job_frame.setMinimumSize(220, 80)
 
-        job_frame.setFrameShape(QFrame.StyledPanel)
-        job_frame.setFrameShadow(QFrame.Plain)
-        job_frame.setStyleSheet(primitive.CSS_FRAME)
+        job_frame.setFrameShape(QFrame.Box)
+        job_frame.setFrameShadow(QFrame.Raised)
+        job_frame.setStyleSheet(CSS.CSS_FRAME)
 
-
-        layout = QVBoxLayout()
-        layout.addWidget(QLabel(name))
+        layout = QHBoxLayout()
+        label = QLabel(name)
+        label.setStyleSheet(CSS.CSS_FRAME_LABEL)
+        layout.addWidget(label, 0, Qt.AlignTop)
         # layout.addWidget(QPushButton(QIcon(self.appctxt.get_resource("outline_play_circle_outline_black_18dp.png")), ""))
+
+        # Updated by Pinkesh Shah on 27-Apr-20
+        # Start Region
+        layout.addSpacing(25)
+        mikrotikLabel = QLabel("Mikrotik")
+        mikrotikLabel.setFixedSize(25, 15)
+        mikrotikLabel.setStyleSheet(CSS.CSS_FRAME_LABEL_1)
+        layout.addWidget(mikrotikLabel, 0, Qt.AlignTop)
+        # End Region
 
         img = QImage(self.appctxt.get_resource("outline_play_circle_outline_black_18dp.png"))
         lbl_img = QLabel("")
@@ -241,7 +270,20 @@ class MainWindowGui(QMainWindow):
         job_frame.setLayout(layout)
         # count = self.dock_layout.count()
         self.dock_layout.addWidget(job_frame)
+
+        # Updated by Pinkesh Shah on 27-Apr-20
+        # Start Region
+        self.dock_layout.setSpacing(10)
+        # End Region
+
         self.groupBox.setMinimumHeight(self.groupBox.sizeHint().height() + FRAME_SIZE)
+
+        # Updated by Pinkesh Shah on 28-Apr-20
+        # Start Region
+        self.groupBox.setMaximumWidth(250)
+        # End Region
+
+        self.groupBox.setStyleSheet(CSS.CSS_GROUP_BOX)
         return job_frame
 
     def tree_dock_widget(self):
@@ -254,24 +296,45 @@ class MainWindowGui(QMainWindow):
 
         self.groupBox = QGroupBox("")
         self.groupBox.setLayout(self.dock_layout)
-        self.groupBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        # groupBox.setMinimumWidth(250)
-        # groupBox.setMinimumHeight(500)
+        # Updated by Pinkesh Shah on 27-Apr-20
+        # Start Region
+        # self.groupBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.groupBox.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+        # End Region
 
+        # Updated by Pinkesh Shah on 27-Apr-20
+        # Start Region
+        self.groupBox.setStyleSheet('background-color: green;')
+        # End Region
 
         self.dock_widget = QScrollArea()
         self.dock_widget.setWidget(self.groupBox)
         self.dock_widget.setWidgetResizable(True)
-        self.dock_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
+        # Updated by Pinkesh Shah on 28-Apr-20
+        # Start Region
+        self.dock_widget.setMinimumWidth(270)
+        self.dock_widget.setMaximumWidth(275)
+        self.dock_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        # End Region
+        
+        # Updated by Pinkesh Shah on 27-Apr-20
+        # Start Region
+        self.dock_widget.setStyleSheet('background-color: #3B7A57')
+        # End Region
 
     def create_dock_widget_area(self):
         docWidget = QDockWidget("Script Jobs")
+
         docWidget.setWidget(self.dock_widget)
+
         # docWidget.setLayout(layout)
         docWidget.DockWidgetFeatures(QDockWidget.DockWidgetVerticalTitleBar)
         docWidget.setFloating(False)
         self.addDockWidget(Qt.LeftDockWidgetArea, docWidget, Qt.Vertical)
+
+        docWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
     def createBottomArea(self):
         status = QStatusBar()
@@ -310,7 +373,7 @@ class MainWindowGui(QMainWindow):
     def ActionExecute(self):
         current_tab_index = self.tabview.currentIndex()
         if current_tab_index >= 0:
-            tab = self.tabview.currentWidget()
+            tab = self.tabview.curentWidget()
             tab.property("OBJECT").Execute()
 
     def ActionPause(self):
@@ -344,11 +407,14 @@ class MainWindowGui(QMainWindow):
 
     def get_id(self):
         cursor = self.conn.execute(''' SELECT MAX(id) as id FROM jobs  ''')
-        _id = cursor.fetchone()[0] + 1
+        _id = 0
+        for rec in cursor:
+            _id = (0 if rec[0] == None else rec[0])
+        _id = _id + 1
         cursor.close()
         return _id
 
-    def get_job_list(self,):
+    def get_job_list(self):
         string = "select id, name, jobs_data from Jobs order by id"
         cursor = self.conn.execute(string)
         for rec in cursor:
@@ -357,6 +423,24 @@ class MainWindowGui(QMainWindow):
             frame.setProperty(NAME, rec[1])
             frame.setProperty(JOB_DATA, rec[2])
 
-    def load_job(self):
-        print("Frame Event Called")
+            frame.mouseDoubleClickEvent = partial(self.load_job, frame)
 
+    def load_job(self, frame, event):
+
+        job_data = json.loads(frame.property(JOB_DATA))
+
+        # Updated by Pinkesh Shah on 30-Apr-20
+        # Start Region
+        if frame.property(NAME) not in self.activeJobTabs:
+            print(frame.property(NAME))
+            self.activeJobTabs.append(frame.property(NAME))
+            print("self.activeJobTabs", self.activeJobTabs)
+            print(self.tabview.currentIndex())
+            print("Tab Name:", self.tabview.tabText(self.tabview.currentIndex()))
+            print("Current Tab:", self.tabview.widget(self.tabview.currentIndex()))
+            tab = self.ActionNew(frame.property(NAME))
+            center = tab.property("OBJECT")
+            center.LoadData(job_data)
+        else:
+            self.tabview.setCurrentWidget()
+        # End Region
