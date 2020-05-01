@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QLineEdit
 CSS_QLineEdit = "BQLineEdit { border-style: solid; border-width:1px; height: 25px; border-color: grey; " + \
-                "background: white}" +\
-                "BQLineEdit:focus {border: 2px solid red}"
+                "background: white; border-radius: 3px}" + \
+                "BQLineEdit:focus {border: 2px solid red} "
 
 
 class BQLineEdit(QLineEdit):
