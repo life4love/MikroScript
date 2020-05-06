@@ -52,7 +52,7 @@ class ScriptExecutor:
 
     def infoIconImg(self):
 
-        img = 'E:/Bizee/MikroScript/MikroScript-master/MikroScript-master/src/main/resources/base/info-24px.svg'
+        img = self.appctxt.get_resource("info-24px.svg")
         pixImg = QPixmap(img)
         resizedPixImg = pixImg.scaled(19, 18, Qt.IgnoreAspectRatio, Qt.FastTransformation)
         return resizedPixImg
