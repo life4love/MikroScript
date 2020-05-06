@@ -51,6 +51,7 @@ class MainWindowGui(QMainWindow):
         self.tree_dock_widget()
         self.card_dock_widget()
         self.create_dock_widget_area()
+
         # self.createBottomArea()
 
         # mainLayout = QGridLayout()
