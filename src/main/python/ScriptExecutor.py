@@ -125,7 +125,11 @@ class ScriptExecutor:
         # Start Region
         self.host.setMinimumWidth(300)
         self.host.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.host.setAlignment(Qt.AlignRight)
+        # End Region
+
+        # Updated by Pinkesh Shah on 06-May-20
+        # Start Region
+        self.host.setAlignment(Qt.AlignLeft)
         # End Region
 
         # self.host.setValidator(self.validateHost)
@@ -138,9 +142,9 @@ class ScriptExecutor:
         self.portNumber = BQLineEdit()
         self.portNumber.setFixedWidth(100)
 
-        # Updated by Pinkesh Shah on 27-Apr-20
+        # Updated by Pinkesh Shah on 06-May-20
         # Start Region
-        self.portNumber.setAlignment(Qt.AlignRight)
+        self.portNumber.setAlignment(Qt.AlignLeft)
         # End Region
 
         self.ssh = QRadioButton("SSH")
@@ -229,7 +233,7 @@ class ScriptExecutor:
         self.skipError.setChecked(True)
 
         self.script = QPlainTextEdit()
-
+        #
         # Updated by Pinkesh Shah on 05-May-20 to reduce script input size
         # Start Region
         self.script.setFixedHeight(200)
@@ -635,6 +639,8 @@ class ScriptExecutor:
             user = self.username.text().rstrip().lstrip()
             if user != "" or self.password.text() != "":
                 self.credentials["1"] = {USER: user, PASS: self.password.text()}
+                # Print on 06-May-20
+                print("self.credentials:", self.credentials)
             self.execute = ExecuteScript(self)
             self.result.appendPlainText("Starting Execution")
 
@@ -659,7 +665,12 @@ class ScriptExecutor:
                 "session": self.session.text(),
                 "skip_on_error": self.skipError.isChecked(),
                 "log_file": self.log.isChecked(),
-                "credential": self.credentials
+                "credential": self.credentials,
+
+                # Updated by Pinkesh Shah on 06-May-20 to add script to the dictionary
+                # Start Region
+                "script": self.script.toPlainText().lstrip().rstrip()
+                # End Region
 
             }
             return job_data
@@ -676,7 +687,13 @@ class ScriptExecutor:
         self.credentials = credential
         cred_count = len(self.credentials)
         for i in range(cred_count):
-            if i == 1:
+
+            # Updated by Pinkesh Shah on 06-May-20 to retrieve first credential for username and password fields
+            # Start Region
+            # if i == 1:
+            if i == 0:
+            # End Region
+
                 self.username.setText(credential.get("1").get(USER))
                 self.password.setText(credential.get("1").get(PASS))
             else:
@@ -708,6 +725,10 @@ class ScriptExecutor:
         else:
             self.skipError.setChecked(False)
 
+        # Updated by Pinkesh Shah on 06-May-20 to load job script
+        # Start Region
+        self.script.setPlainText(job_data.get("script"))
+        # End Region
 
     def ActionPause(self):
         print("Pause")

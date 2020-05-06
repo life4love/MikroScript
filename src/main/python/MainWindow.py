@@ -242,8 +242,15 @@ class MainWindowGui(QMainWindow):
         # job_frame.   connect(self.load_job)
         job_frame.setMinimumSize(220, 80)
 
-        job_frame.setFrameShape(QFrame.Box)
+        job_frame.setFrameShape(QFrame.Panel)
         job_frame.setFrameShadow(QFrame.Raised)
+
+        # Updated by Pinkesh Shah on 06-May-20
+        # Start Region
+        job_frame.setLineWidth(3)
+        job_frame.setMidLineWidth(3)
+        # End Region
+
         job_frame.setStyleSheet(CSS.CSS_FRAME)
 
         layout = QHBoxLayout()
@@ -393,9 +400,15 @@ class MainWindowGui(QMainWindow):
     def ActionSave(self):
         self.create_table()
         current_tab_index = self.tabview.currentIndex()
+        # Print on 06-May-20
+        print("current_tab_index:", current_tab_index)
         if current_tab_index >= 0:
             tab = self.tabview.currentWidget()
+            # Print on 06-May-20
+            print("Type(tab):", type(tab))
             job_data = tab.property("OBJECT").get_job_data()
+            # Print on 06-May-20
+            print("job_data:", job_data)
             if len(job_data) > 0:
                 if tab.property("NAME") == "":
                     win = SaveWindow()
@@ -483,6 +496,8 @@ class MainWindowGui(QMainWindow):
             tab = self.ActionNew(frame.property(NAME))
             center = tab.property("OBJECT")
             center.LoadData(job_data)
+            # Print on 06-May-20
+            print("Job Data:", job_data)
         # End Region
 
         # Updated by Pinkesh Shah on 02-May-20
