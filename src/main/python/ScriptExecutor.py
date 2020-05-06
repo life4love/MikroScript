@@ -229,6 +229,12 @@ class ScriptExecutor:
         self.skipError.setChecked(True)
 
         self.script = QPlainTextEdit()
+
+        # Updated by Pinkesh Shah on 05-May-20 to reduce script input size
+        # Start Region
+        self.script.setFixedHeight(200)
+        # End Region
+
         self.script.setStyleSheet(CSS_BASE)
 
         lblScript = QLabel("&Script*")
@@ -667,7 +673,6 @@ class ScriptExecutor:
         # Start Region
 
         credential = job_data.get("credential")
-        print("Credential: ", credential)
         self.credentials = credential
         cred_count = len(self.credentials)
         for i in range(cred_count):
@@ -703,9 +708,6 @@ class ScriptExecutor:
         else:
             self.skipError.setChecked(False)
 
-        print("Step 1   : Calling multi_credential_dialogue() which opens Multi Credential Window")
-        # self.multi_credential_dialogue()
-        # self.pinkesh(credential)
 
     def ActionPause(self):
         print("Pause")

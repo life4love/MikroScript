@@ -111,9 +111,7 @@ class MainWindowGui(QMainWindow):
         # Updated by Pinkesh Shah on 30-Apr-20
         # Start Region
         tab_Name = self.tabview.tabText(index)
-        print("Tab Name while closing tab:", tab_Name)
         self.activeJobTabs.remove(tab_Name)
-        print("Active Jobs after closing tabs:", self.activeJobTabs)
         # End Region
 
         if tab is not None:
@@ -258,7 +256,7 @@ class MainWindowGui(QMainWindow):
         layout.addSpacing(25)
         mikrotikLabel = QLabel("Mikrotik")
         mikrotikLabel.setFixedSize(25, 15)
-        mikrotikLabel.setStyleSheet(CSS.CSS_FRAME_LABEL_1)
+        mikrotikLabel.setStyleSheet(CSS.CSS_FRAME_MIKROTIK_LABEL)
         layout.addWidget(mikrotikLabel, 0, Qt.AlignTop)
         # End Region
 
@@ -276,14 +274,29 @@ class MainWindowGui(QMainWindow):
         self.dock_layout.setSpacing(10)
         # End Region
 
+        # Updated by Pinkesh Shah on 05-May-20 to disable Scheduler layout
+        # Start Region
         self.groupBox.setMinimumHeight(self.groupBox.sizeHint().height() + FRAME_SIZE)
+        # self.jobsGroupBox.setMinimumHeight(self.jobsGroupBox.sizeHint().height() + FRAME_SIZE)
+        # End Region
+
+        # Updated by Pinkesh Shah on 05-May-20 to disable Scheduler layout
+        # Start Region
 
         # Updated by Pinkesh Shah on 28-Apr-20
         # Start Region
         self.groupBox.setMaximumWidth(250)
         # End Region
 
-        self.groupBox.setStyleSheet(CSS.CSS_GROUP_BOX)
+        # self.jobsGroupBox.setMaximumWidth(250)
+        # End Region
+
+        # Updated by Pinkesh Shah on 05-May-20 to disable Scheduler layout
+        # Start Region
+        self.groupBox.setStyleSheet(CSS.CSS_FRAME_GROUP_BOX)
+        # self.jobsGroupBox.setStyleSheet(CSS.CSS_GROUP_BOX)
+        # End Region
+
         return job_frame
 
     def tree_dock_widget(self):
@@ -292,10 +305,34 @@ class MainWindowGui(QMainWindow):
 
     def card_dock_widget(self):
 
+        # Updated by Pinkesh Shah on 05-May-20 to disable Scheduler layout
+        # Start Region
+        # self.dockWidgetGroupBox = QGroupBox("")
+        # self.dockWidgetLayout = QVBoxLayout()
+        # self.jobsGroupBox = QGroupBox("Jobs")
+
+        # Scheduler
+        # self.scheduledGroupBox = QGroupBox("Scheduled")
+        # self.scheduledLayout = QVBoxLayout()
+        # self.scheduledGroupBox.setLayout(self.scheduledLayout)
+        # self.scheduledScroll = QScrollArea()
+        # self.scheduledScroll.setWidget(self.scheduledGroupBox)
+        # self.scheduledScroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        # self.scheduledLayout.addWidget(QLabel("Test Label"))
+        # self.dockWidgetGroupBox.setLayout(self.dockWidgetLayout)
+        # End Region
+
         self.dock_layout = QVBoxLayout()
 
+        # Updated by Pinkesh Shah on 05-May-20 to disable Scheduler layout
+        # Start Region
         self.groupBox = QGroupBox("")
         self.groupBox.setLayout(self.dock_layout)
+        # self.jobsGroupBox.setLayout(self.dock_layout)
+        # End Region
+
+        # Updated by Pinkesh Shah on 05-May-20 to disable Scheduler layout
+        # Start Region
 
         # Updated by Pinkesh Shah on 27-Apr-20
         # Start Region
@@ -303,13 +340,17 @@ class MainWindowGui(QMainWindow):
         self.groupBox.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         # End Region
 
-        # Updated by Pinkesh Shah on 27-Apr-20
-        # Start Region
-        self.groupBox.setStyleSheet('background-color: green;')
+        # self.jobsGroupBox.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         # End Region
 
         self.dock_widget = QScrollArea()
+
+        # Updated by Pinkesh Shah on 05-May-20 to disable Scheduler layout
+        # Start Region
         self.dock_widget.setWidget(self.groupBox)
+        # self.dock_widget.setWidget(self.jobsGroupBox)
+        # End Region
+
         self.dock_widget.setWidgetResizable(True)
 
         # Updated by Pinkesh Shah on 28-Apr-20
@@ -319,15 +360,20 @@ class MainWindowGui(QMainWindow):
         self.dock_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         # End Region
         
-        # Updated by Pinkesh Shah on 27-Apr-20
+        # Updated by Pinkesh Shah on 05-May-20 to disable Scheduler layout
         # Start Region
-        self.dock_widget.setStyleSheet('background-color: #3B7A57')
+        # self.dockWidgetLayout.addWidget(self.dock_widget)
+        # self.dockWidgetLayout.addWidget(self.scheduledScroll)
         # End Region
 
     def create_dock_widget_area(self):
         docWidget = QDockWidget("Script Jobs")
 
+        # Updated by Pinkesh Shah on 05-May-20 to disable Scheduler layout
+        # Start Region
         docWidget.setWidget(self.dock_widget)
+        # docWidget.setWidget(self.dockWidgetGroupBox)
+        # End Region
 
         # docWidget.setLayout(layout)
         docWidget.DockWidgetFeatures(QDockWidget.DockWidgetVerticalTitleBar)
@@ -373,7 +419,7 @@ class MainWindowGui(QMainWindow):
     def ActionExecute(self):
         current_tab_index = self.tabview.currentIndex()
         if current_tab_index >= 0:
-            tab = self.tabview.curentWidget()
+            tab = self.tabview.currentWidget()
             tab.property("OBJECT").Execute()
 
     def ActionPause(self):
@@ -432,15 +478,16 @@ class MainWindowGui(QMainWindow):
         # Updated by Pinkesh Shah on 30-Apr-20
         # Start Region
         if frame.property(NAME) not in self.activeJobTabs:
-            print(frame.property(NAME))
             self.activeJobTabs.append(frame.property(NAME))
-            print("self.activeJobTabs", self.activeJobTabs)
-            print(self.tabview.currentIndex())
-            print("Tab Name:", self.tabview.tabText(self.tabview.currentIndex()))
-            print("Current Tab:", self.tabview.widget(self.tabview.currentIndex()))
             tab = self.ActionNew(frame.property(NAME))
             center = tab.property("OBJECT")
             center.LoadData(job_data)
+        # End Region
+
+        # Updated by Pinkesh Shah on 02-May-20
+        # Start Region
         else:
-            self.tabview.setCurrentWidget()
+            for i in range(self.tabview.count()):
+                if frame.property(NAME) == self.tabview.tabText(i):
+                    self.tabview.setCurrentIndex(i)
         # End Region
