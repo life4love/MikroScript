@@ -19,6 +19,16 @@ from CSS import *
 
 from component.BQLineEdit import BQLineEdit
 
+# Updated by Pinkesh Shah on 13-May-20 to import log class
+# Start Region
+from Logs import *
+# End Region
+
+# Updated by Pinkesh Shah on 11-May-20 to import save_window for fetching device from the save window
+# Start Region
+from save_window import SaveWindow
+# End Window
+
 SSH_PORT = 22
 USER = "user"
 PASS = "pass"
@@ -49,6 +59,11 @@ class ScriptExecutor:
                 self.create_properties()
             except Exception:
                 raise
+
+        # Updated by Pinkesh Shah on 13-May-20 to create log object
+        # Start Region
+        self.logObject = LogRecord()
+        # End Region
 
     def infoIconImg(self):
 
@@ -192,7 +207,7 @@ class ScriptExecutor:
 
         # Updated by Pinkesh Shah on 25-Apr-20
         # Start Region
-        self.username.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.username.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         # End Region
 
         lblUser = QLabel("&User name*")
@@ -214,7 +229,7 @@ class ScriptExecutor:
 
         # Updated by Pinkesh Shah on 25-Apr-20
         # Start Region
-        self.password.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.password.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         # End Region
 
         addCredential = QPushButton("+")
@@ -260,8 +275,14 @@ class ScriptExecutor:
         self.add_result_tabs()
 
         hLayout = QHBoxLayout()
+
+        # Updated by Pinkesh Shah on 09-May-20
+        # Start Region
+        lblConnType = QLabel("Connection type")
+        # End Region
+
         hLayout.addWidget(lblhost)
-        hLayout.addWidget(QLabel("Connection type"))
+        hLayout.addWidget(lblConnType)
         hLayout.addWidget(QLabel("Port"))
 
         host_gBox = QGroupBox("")
@@ -385,7 +406,7 @@ class ScriptExecutor:
 
         hLayout1 = QHBoxLayout()
         hLayout1.addWidget(lblPassword, 0, Qt.AlignLeft)
-        hLayout1.addWidget(self.password)
+        hLayout1.addWidget(self.password, 0, Qt.AlignLeft)
 
         # Updated by Pinkesh Shah on 17-Apr-20
         # Start Region
@@ -393,6 +414,12 @@ class ScriptExecutor:
         imgLabel1.setPixmap(self.infoIconImg())
         imgLabel1.setToolTip("Enter Username")
         imgLabel1.setToolTipDuration(50000)
+
+        # Updated by Pinkesh Shah on 07-May-20 to fix overlapping of widgets
+        # Start Region
+        imgLabel1.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        # End Region
+
         hLayout.addWidget(imgLabel1)
         # End Region
 
@@ -417,9 +444,16 @@ class ScriptExecutor:
         # vLayout.addLayout(hLayout)
         cred_gBox.setLayout(vLayout)
 
+        # Updated by Pinkesh Shah on 08-May-20
+        # Start Region
+        cred_gBox.setStyleSheet(CSS_CRED_GBOX)
+        host_gBox.setStyleSheet(CSS_HOST_GBOX)
+        # End Region
+
         hLayout = QHBoxLayout()
         hLayout.addWidget(cred_gBox)
         hLayout.addWidget(host_gBox)
+
         self.master_layout.addLayout(hLayout)
 
         hLayout = QHBoxLayout()
@@ -639,10 +673,14 @@ class ScriptExecutor:
             user = self.username.text().rstrip().lstrip()
             if user != "" or self.password.text() != "":
                 self.credentials["1"] = {USER: user, PASS: self.password.text()}
-                # Print on 06-May-20
-                print("self.credentials:", self.credentials)
             self.execute = ExecuteScript(self)
             self.result.appendPlainText("Starting Execution")
+
+            # Updated by Pinkesh Shah on 13-May-20 to record log
+            # Start Region
+            self.logObject.log_info(message="Starting Execution")
+            # End Region
+
 
     def add_result_tabs(self):
         self.tabview = QTabWidget()
@@ -657,6 +695,19 @@ class ScriptExecutor:
 
     def get_job_data(self):
         if self.validate_required_fields():
+
+            # Updated by Pinkesh Shah on 07-May-20
+            # Start Region
+            user = self.username.text().rstrip().lstrip()
+            password = self.password.text().rstrip().lstrip()
+            self.credentials["1"] = {USER: user, PASS: password}
+            # End Region
+
+            # Updated by Pinkesh Shah on 11-May-20 to store device info of the job
+            # Start Region
+            # device = SaveWindow()
+            # End Region
+
             job_data = {
                 "host": self.host.text().lstrip().rstrip(),
                 "connection_type": "TELNET" if self.telnet.isChecked() else "SSH",
@@ -669,9 +720,13 @@ class ScriptExecutor:
 
                 # Updated by Pinkesh Shah on 06-May-20 to add script to the dictionary
                 # Start Region
-                "script": self.script.toPlainText().lstrip().rstrip()
+                "script": self.script.toPlainText().lstrip().rstrip(),
                 # End Region
 
+                # Updated by Pinkesh Shah on 11-May-20 to store device info of the job
+                # Start Region
+                "device": ""
+                # End Region
             }
             return job_data
         return {}
@@ -753,7 +808,13 @@ class ScriptExecutor:
         #     tab.property("OBJECT").Execute()
 
 
-class ExecuteScript:
+class ExecuteScript(LogRecord):
+
+    # Updated by Pinkesh Shah on 13-May-20 to create log object
+    # Start Region
+    logObject = LogRecord()
+    # End Region
+
     def __init__(self, parent):
         self.parent = parent
         self.result = {}
@@ -842,6 +903,12 @@ class ExecuteScript:
         self.append_result("IP slot assigned for this session execution are: " + host_addresses, thread_name)
         self.append_result("Session execution started at " + str(started_time) + " second.", thread_name)
 
+        # Updated by Pinkesh Shah on 13-May-20 to record log
+        # Start Region
+        self.logObject.log_info(message="IP slot assigned for this session execution are: " + host_addresses)
+        self.logObject.log_info(message="Session execution started at " + str(started_time) + " second.")
+        # End Region
+
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         client.load_system_host_keys()
@@ -850,6 +917,12 @@ class ExecuteScript:
         for host in ip_queue:
             self.append_result(" ", thread_name)
             self.append_result("Execution started on host: " + host, thread_name)
+
+            # Updated by Pinkesh Shah on 13-May-20 to record log
+            # Start Region
+            self.logObject.log_info(message="Execution started on host: " + host)
+            # End Region
+
             for port in port_list:
                 if self.execute_host_with_credential(thread_name, client, host, int(port)):
                     break
@@ -858,6 +931,12 @@ class ExecuteScript:
         end_time = datetime.datetime.now()
 
         self.append_result("Session execution finished at " + str(end_time) + " second", thread_name)
+
+        # Updated by Pinkesh Shah on 13-May-20 to record log
+        # Start Region
+        self.logObject.log_info(message="Session execution finished at " + str(end_time) + " second")
+        # End Region
+
         # self.append_result("Total time consumed on this session is " + str(round(int(str(end_time - started_time)), 2)) + " seconds",
         #                    thread_name)
 
@@ -878,6 +957,13 @@ class ExecuteScript:
         try:
             self.append_result(thread_name + " : Connecting host : " + ip_address + " on port: " + str(port) +
                                " with credential " + cred_counter, thread_name)
+
+            # Updated by Pinkesh Shah on 13-May-20 to record log
+            # Start Region
+            self.logObject.log_info(message=thread_name + " : Connecting host : " + ip_address + " on port: " +
+                                            str(port) + " with credential " + cred_counter)
+            # End Region
+
             username = cred[USER]
             password = cred[PASS]
             timeout = int(self.parent.timeout.text())
@@ -886,23 +972,55 @@ class ExecuteScript:
             cmd_count = 0
             total_command = len(cmd_list)
             self.success_connection = True
+
             for cmd in cmd_list:
                 cmd_count += 1
                 self.append_result(thread_name + " : Executing " + str(cmd_count) + "/" + str(total_command) +
                                    " command on host : " + ip_address + " : " + cmd, thread_name)
 
+                # Updated by Pinkesh Shah on 13-May-20 to record log
+                # Start Region
+                self.logObject.log_info(message=thread_name + " : Executing " + str(cmd_count) + "/" +
+                                        str(total_command) + " command on host : " + ip_address + " : " + cmd)
+                # End Region
+
                 self.append_result(self.execute_command(client, cmd), thread_name)
             return True
         except para.AuthenticationException as auth:
             self.append_result("Wrong username or password to connect " + ip_address + " : " + str(auth), thread_name)
+
+            # Updated by Pinkesh Shah on 13-May-20 to record log
+            # Start Region
+            self.logObject.log_error(message="Wrong username or password to connect " + ip_address + " : " + str(auth))
+            # End Region
+
         except para.SSHException as sshEx:
             self.append_result("Unable to establish SSH connection on host " + ip_address + " : " + str(sshEx),
                                thread_name)
+
+            # Updated by Pinkesh Shah on 13-May-20 to record log
+            # Start Region
+            self.logObject.log_error(message="Unable to establish SSH connection on host " + ip_address + " : " +
+                                    str(sshEx))
+            # End Region
+
         except socket.timeout as timeout:
             self.append_result("Unable to connect host " + ip_address + " : " + str(timeout), thread_name)
+
+            # Updated by Pinkesh Shah on 13-May-20 to record log
+            # Start Region
+            self.logObject.log_error(message="Unable to connect host " + ip_address + " : " + str(timeout))
+            # End Region
+
         except Exception as e:
             self.append_result("Other Exception occurred on " + ip_address + " : " + str(e), thread_name)
             print("Other Exception occurred on " + ip_address + " : " + str(e), thread_name)
+
+            # Updated by Pinkesh Shah on 13-May-20 to record log
+            # Start Region
+            self.logObject.log_error(message="Other Exception occurred on " + ip_address + " : " + str(e))
+            # End Region
+
         return False
 
     def execute_command(self, client, command):
@@ -942,6 +1060,11 @@ class ExecuteScript:
             ip_list = list(iter_iprange(hosts[0], hosts[1]))
         except Exception:
             self.append_result("Exception occurred in hostname: " + hostname)
+
+            # Updated by Pinkesh Shah on 13-May-20 to record log
+            # Start Region
+            self.logObject.log_error(message="Exception occurred in hostname: " + hostname)
+            # End Region
 
         return ip_list
 

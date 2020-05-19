@@ -72,8 +72,11 @@ if env == "DEV":
                 # End Region'''
 
     CSS_FRAME_LABEL = "QLabel { color: " + COLOR_BLACK + ";" + \
+                      "max-width: 100px;" \
                       "font-size: 13px; " \
-                      "font-weight : bold }"
+                      "font-weight : bold;" \
+                      "padding-left: 2px;" \
+                      "padding-top: 0px }"
 
     CSS_FRAME_MIKROTIK_LABEL = "QLabel { color: " + COLOR_DARK_GREY + ";" + \
                                "font-weight: bold; " \
@@ -82,6 +85,13 @@ if env == "DEV":
 
     CSS_FRAME_GROUP_BOX = "QGroupBox { background-color: " + COLOR_WHITE + ";" + \
                           "padding-top: 0px }"
+
+    CSS_CRED_GBOX = ""
+
+    CSS_HOST_GBOX = ""
+
+    CSS_COMBOBOX = "QComboBox { border-color: grey; " \
+                   "height: 25px; }"
 
 elif env == "TEST":
     CSS_BASE = "QPlainTextEdit { border-style: solid; border-width:1px; border-color: grey;" + \
@@ -97,8 +107,11 @@ elif env == "TEST":
 
     CSS_FRAME_LABEL = "QLabel { background-color: " + COLOR_RED + ";" + \
                       "color: " + COLOR_BLACK + ";" + \
+                      "max-width: 100px;" \
                       "font-size: 13px; " \
-                      "font-weight : bold }"
+                      "font-weight : bold;" \
+                      "padding-left: 2px;" \
+                      "padding-top: 0px; }"
 
     CSS_FRAME_MIKROTIK_LABEL = "QLabel { color: " + COLOR_DARK_GREY + ";" + \
                                "background-color: " + COLOR_RED + ";" + \
@@ -108,6 +121,14 @@ elif env == "TEST":
 
     CSS_FRAME_GROUP_BOX = "QGroupBox { background-color: " + COLOR_PALE_WHITE + ";" + \
                           "padding-top: 0px }"
+
+    CSS_CRED_GBOX = "QGroupBox { background-color: " + COLOR_YELLOW + ";}"
+
+    CSS_HOST_GBOX = "QGroupBox { background-color: " + COLOR_BLUE + ";}"
+
+    CSS_COMBOBOX = "QComboBox { border-color: grey; " \
+                   "height: 25px; " \
+                   "color: red; }"
 
 # End Region
 

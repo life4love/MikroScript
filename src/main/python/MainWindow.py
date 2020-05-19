@@ -32,7 +32,7 @@ class MainWindowGui(QMainWindow):
         self.setWindowTitle("MikroScript")
         self.setStyleSheet(CSS.CSS_BASE)
         self.resize(1128, 768)
-        self.setMinimumSize(800,600)
+        self.setMinimumSize(1300, 800)
         self.setWindowIcon(QIcon(self.appctxt.get_resource("favicon.png")))
 
         # Updated by Pinkesh Shah on 29-Apr-20
@@ -237,7 +237,7 @@ class MainWindowGui(QMainWindow):
         # toolBar.addWidget(styleComboBox)
         self.addToolBar(self.toolBar)
 
-    def build_job_frame(self, name):
+    def build_job_frame(self, name, device=None):
         job_frame = QFrame()
         # job_frame.   connect(self.load_job)
         job_frame.setMinimumSize(220, 80)
@@ -255,6 +255,12 @@ class MainWindowGui(QMainWindow):
 
         layout = QHBoxLayout()
         label = QLabel(name)
+
+        # Updated by Pinkesh Shah on 07-May-20 to limit label text to fixed width
+        # Start Region
+        label.setWordWrap(True)
+        # End Region
+
         label.setStyleSheet(CSS.CSS_FRAME_LABEL)
         layout.addWidget(label, 0, Qt.AlignTop)
         # layout.addWidget(QPushButton(QIcon(self.appctxt.get_resource("outline_play_circle_outline_black_18dp.png")), ""))
@@ -262,7 +268,7 @@ class MainWindowGui(QMainWindow):
         # Updated by Pinkesh Shah on 27-Apr-20
         # Start Region
         layout.addSpacing(25)
-        mikrotikLabel = QLabel("Mikrotik")
+        mikrotikLabel = QLabel(device)
         mikrotikLabel.setFixedSize(25, 15)
         mikrotikLabel.setStyleSheet(CSS.CSS_FRAME_MIKROTIK_LABEL)
         layout.addWidget(mikrotikLabel, 0, Qt.AlignTop)
@@ -400,20 +406,21 @@ class MainWindowGui(QMainWindow):
     def ActionSave(self):
         self.create_table()
         current_tab_index = self.tabview.currentIndex()
-        # Print on 06-May-20
-        print("current_tab_index:", current_tab_index)
         if current_tab_index >= 0:
             tab = self.tabview.currentWidget()
-            # Print on 06-May-20
-            print("Type(tab):", type(tab))
             job_data = tab.property("OBJECT").get_job_data()
-            # Print on 06-May-20
-            print("job_data:", job_data)
             if len(job_data) > 0:
                 if tab.property("NAME") == "":
                     win = SaveWindow()
                     if win.is_accepted():
                         name = win.get_name()
+
+                        # Updated by Pinkesh Shah on 11-May-20 to get device info related to the job
+                        # Start Region
+                        device = win.get_device_name()
+                        job_data['device'] = device
+                        # End Region
+
                         _id = self.get_id()
                         tab.setToolTip(name)
                         tab.setWindowTitle(name)
@@ -421,7 +428,13 @@ class MainWindowGui(QMainWindow):
                         tab.setProperty("_ID", _id)
                         string = "insert into jobs (id, name, jobs_data, created_on) values (?, ?, ?, ?)"
                         values = [_id, name, json.dumps(job_data), datetime.now()]
-                        self.build_job_frame(name)
+
+                        # Updated by Pinkesh Shah on 11-May-20 to build frame with device
+                        # Start Region
+                        # self.build_job_frame(name)
+                        self.build_job_frame(name, device)
+                        # End Region
+
                         self.conn.execute(string, values)
                         self.conn.commit()
                 else:
@@ -478,12 +491,20 @@ class MainWindowGui(QMainWindow):
         string = "select id, name, jobs_data from Jobs order by id"
         cursor = self.conn.execute(string)
         for rec in cursor:
-            frame = self.build_job_frame(rec[1])
-            frame.setProperty(_ID, rec[0])
-            frame.setProperty(NAME, rec[1])
-            frame.setProperty(JOB_DATA, rec[2])
+            try:
+                # Updated by Pinkesh Shah on 11-May-20 to load device of the job
+                # Start Region
+                queryResponse = json.loads(rec[2])
+                device = queryResponse["device"]
+                frame = self.build_job_frame(rec[1], device)
+                # End Region
 
-            frame.mouseDoubleClickEvent = partial(self.load_job, frame)
+                frame.setProperty(_ID, rec[0])
+                frame.setProperty(NAME, rec[1])
+                frame.setProperty(JOB_DATA, rec[2])
+                frame.mouseDoubleClickEvent = partial(self.load_job, frame)
+            except KeyError:
+                pass
 
     def load_job(self, frame, event):
 
@@ -496,8 +517,6 @@ class MainWindowGui(QMainWindow):
             tab = self.ActionNew(frame.property(NAME))
             center = tab.property("OBJECT")
             center.LoadData(job_data)
-            # Print on 06-May-20
-            print("Job Data:", job_data)
         # End Region
 
         # Updated by Pinkesh Shah on 02-May-20

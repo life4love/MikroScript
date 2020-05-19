@@ -1,7 +1,8 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QPushButton, QHBoxLayout, QSpacerItem, QSizePolicy, QLabel
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QPushButton, QHBoxLayout, QSpacerItem, QSizePolicy, QLabel, QComboBox
 from PyQt5.QtCore import Qt
 
 from component.BQLineEdit import BQLineEdit
+import CSS
 
 class SaveWindow(QDialog):
     def __init__(self):
@@ -28,9 +29,34 @@ class SaveWindow(QDialog):
         # layout.addLayout(hLayout)
 
         hLayout = QHBoxLayout()
-        hLayout.addWidget(QLabel("Job Name"))
+
+        labelJobName = QLabel("Job Name")
+
+        # Updated by Pinkesh Shah on 11-May-20 to set minimum size
+        # Start Region
+        labelJobName.setFixedSize(70, 10)
+        # End Region
+
+        hLayout.addWidget(labelJobName)
         hLayout.addWidget(self.name)
         layout.addLayout(hLayout)
+
+        # Updated by Pinkesh Shah on 11-May-20 to add device selection for the user
+        # Start Region
+        hLayout = QHBoxLayout()
+
+        labelDevice = QLabel("Select Device")
+        labelDevice.setFixedSize(70, 10)
+
+        self.dropDownDevices = QComboBox()
+        self.dropDownDevices.addItems(["Mikrotik", "Others"])
+        self.dropDownDevices.setMinimumWidth(50)
+        self.dropDownDevices.setStyleSheet(CSS.CSS_COMBOBOX)
+
+        hLayout.addWidget(labelDevice)
+        hLayout.addWidget(self.dropDownDevices)
+        layout.addLayout(hLayout)
+        # End Region
 
         hLayout = QHBoxLayout()
         hLayout.addSpacerItem(QSpacerItem(80, 10, QSizePolicy.Expanding, QSizePolicy.Expanding))
@@ -54,3 +80,8 @@ class SaveWindow(QDialog):
     def is_accepted(self):
         return self.accepted
 
+    # Updated by Pinkesh Shah on 11-May-20 to return device selection
+    # Start Region
+    def get_device_name(self):
+        return self.dropDownDevices.currentText()
+    # End Region
