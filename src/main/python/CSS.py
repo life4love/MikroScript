@@ -1,24 +1,5 @@
 from fbs_runtime.application_context.PyQt5 import ApplicationContext
-
-ENVIRONMENT = "DEV"
-BACKGROUND_COLOR = "#FBFBFB"
-# APP_BG_COLOR = "#F1F1F1"
-# APP_BG_COLOR = "#efebe9"
-APP_BG_COLOR = "#D7D7D7"
-SECONDARY_COLOR = "#f9f9f9"
-THIRD_COLOR = "#F1F1F1"
-BASE_COLOR = "#ff6b09"
-
-COLOR_WHITE = "#FFFFFF"
-COLOR_PALE_WHITE = "#DB7093"
-COLOR_LIGHT_GREY = "#F1F1F1"
-COLOR_MEDIUM_GREY = "#E4E4E4"
-COLOR_DARK_GREY = "#A9A9A9"
-COLOR_RED = "#FF0000"
-COLOR_BLUE = "#0000FF"
-COLOR_BLACK = "#000000"
-COLOR_GREEN = "#008000"
-COLOR_YELLOW = "#FFFF00"
+from Constant import *
 
 # "QMainWindow { background-color:" + APP_BG_COLOR + "}" + \
 
@@ -52,7 +33,7 @@ CSS_TAB_BASE = "QWidget { background-color:" + SECONDARY_COLOR + "}"
 
 # Updated by Pinkesh Shah on 05-May-20
 # Start Region
-env = "DEV"
+env = "TEST"
 
 if env == "DEV":
     CSS_BASE = "QPlainTextEdit { border-style: solid; border-width:1px; border-color: grey;" + \
@@ -61,7 +42,7 @@ if env == "DEV":
                "QGroupBox { border-style: solid }" + \
                "QScrollArea { background-color:" + SECONDARY_COLOR + "}"
 
-    CSS_FRAME = "QFrame {background-color: " + COLOR_MEDIUM_GREY + ";" + \
+    CSS_FRAME = "QFrame {background-color: " + COLOR_BG + ";" + \
                 "border-radius: 5px; " \
                 "max-width: 250px; }"
 
@@ -91,25 +72,25 @@ elif env == "TEST":
                "QScrollArea { background-color:" + COLOR_GREEN + ";" + \
                "color: " + COLOR_YELLOW + "}"
 
-    CSS_FRAME = "QFrame { background-color: " + COLOR_BLUE + ";" + \
-                "border-radius: 5px; " \
-                "max-width: 250px; }"
+    CSS_FRAME = "QFrame { color: grey; border-radius: 5px; border-style: outset; border-width:1px; border-color: grey }" + \
+                "QFrame:hover { background-color: " + HOVER_BG + " } "
 
-    CSS_FRAME_LABEL = "QLabel { background-color: " + COLOR_RED + ";" + \
-                      "color: " + COLOR_BLACK + ";" + \
-                      "font-size: 13px; " \
-                      "font-weight : bold }"
 
-    CSS_FRAME_MIKROTIK_LABEL = "QLabel { color: " + COLOR_DARK_GREY + ";" + \
-                               "background-color: " + COLOR_RED + ";" + \
-                               "font-weight: bold; " \
-                               "padding-left: 20px; " \
-                               "font-size: 11px }"
+    CSS_FRAME_LABEL = "QLabel { font-size: 11px; color: grey; border-width:0px } "
 
-    CSS_FRAME_GROUP_BOX = "QGroupBox { background-color: " + COLOR_PALE_WHITE + ";" + \
+    CSS_FRAME_MIKROTIK_LABEL = "QLabel { font-weight: bold; " \
+                               "font-size: 14px; " \
+                               " border-width:0px }"
+
+    CSS_FRAME_GROUP_BOX = "QGroupBox { background-color: white;" + \
                           "padding-top: 0px }"
 
 # End Region
+
+CSS_SCROLLBAR = "QScrollBar:vertical { width: 10px; background: " + SCROLL_BG + " ; border-radius: 4px}" + \
+                "QScrollBar::handle:vertical {background-color: " + SCROLL_HANDLE_BG + " } "
+
+
 
 
 def is_env_dev():

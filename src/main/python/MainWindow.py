@@ -4,6 +4,7 @@ from functools import partial
 from datetime import datetime
 from PyQt5.QtGui import QIcon, QKeySequence, QLinearGradient, QImage, QPixmap
 from PyQt5.QtCore import Qt
+from Constant import *
 from PyQt5.QtWidgets import (QStatusBar, QTabWidget, QMainWindow,
                              QToolBar, QToolButton, QDockWidget, QAction,
                              QApplication, QStyleFactory, QWidget, QPushButton, QGraphicsView, QListView, QHBoxLayout,
@@ -16,6 +17,13 @@ import CSS
 # from CustumTabWidget import CustomTabWidget
 from component.BQLineEdit import BQLineEdit
 from save_window import SaveWindow
+
+from fbs_runtime.application_context.PyQt5 import ApplicationContext
+# from MainWindow import MainWindowGui
+
+import sys
+
+
 
 RESOURCE_FILE_PATH = "../resources/"
 
@@ -30,7 +38,7 @@ class MainWindowGui(QMainWindow):
         self.appctxt = ApplicationContext()
         super(MainWindowGui, self).__init__(parent)
         self.setWindowTitle("MikroScript")
-        self.setStyleSheet(CSS.CSS_BASE)
+        self.setStyleSheet(COLOR_BG)
         self.resize(1128, 768)
         self.setMinimumSize(800,600)
         self.setWindowIcon(QIcon(self.appctxt.get_resource("favicon.png")))
@@ -42,7 +50,7 @@ class MainWindowGui(QMainWindow):
 
         self.tabCtr = 0
         self.tabview = QTabWidget()
-        self.tabview.setStyleSheet(CSS.CSS_TAB)
+        # self.tabview.setStyleSheet(CSS.CSS_TAB)
 
         self.conn = sqlite3.connect("MikroScript.db")
 
@@ -85,8 +93,8 @@ class MainWindowGui(QMainWindow):
         try:
             self.tabCtr += 1
             tab = QWidget()
-            tab.setStyleSheet(CSS.CSS_TAB_BASE)
-            # tab.setStyleSheet("{ border-style: solid; background-color:#FBFBFB }")
+            ## tab.setStyleSheet(CSS.CSS_TAB_BASE)
+            ## tab.setStyleSheet("{ border-style: solid; background-color:#FBFBFB }")
             center = ScriptExecutor()
             result = center.getExecutorLayout()
 
@@ -241,23 +249,30 @@ class MainWindowGui(QMainWindow):
         # job_frame.   connect(self.load_job)
         job_frame.setMinimumSize(220, 80)
 
-        job_frame.setFrameShape(QFrame.Box)
-        job_frame.setFrameShadow(QFrame.Raised)
+        # job_frame.setFrameShape(QFrame.Box)
+        # job_frame.setFrameShadow(QFrame.Raised)
+        job_frame.setFrameShape(QFrame.StyledPanel)
+        job_frame.setFrameShadow(QFrame.Plain)
+        job_frame.setLineWidth(0)
+        job_frame.setMidLineWidth(0)
+        # job_frame.setFrameStyle()
         job_frame.setStyleSheet(CSS.CSS_FRAME)
 
         layout = QHBoxLayout()
         label = QLabel(name)
-        label.setStyleSheet(CSS.CSS_FRAME_LABEL)
+        label.setStyleSheet(CSS.CSS_FRAME_MIKROTIK_LABEL)
+        # label.setStyleSheet(CSS.CSS_FRAME_LABEL)
         layout.addWidget(label, 0, Qt.AlignTop)
         # layout.addWidget(QPushButton(QIcon(self.appctxt.get_resource("outline_play_circle_outline_black_18dp.png")), ""))
 
         # Updated by Pinkesh Shah on 27-Apr-20
         # Start Region
-        layout.addSpacing(25)
-        mikrotikLabel = QLabel("Mikrotik")
-        mikrotikLabel.setFixedSize(25, 15)
-        mikrotikLabel.setStyleSheet(CSS.CSS_FRAME_MIKROTIK_LABEL)
-        layout.addWidget(mikrotikLabel, 0, Qt.AlignTop)
+        layout.addSpacing(2)
+        vendorLabel = QLabel("Mikrotik")
+        vendorLabel.setFixedSize(50, 15)
+        vendorLabel.setStyleSheet(CSS.CSS_FRAME_LABEL)
+        # mikrotikLabel.setStyleSheet(CSS.CSS_FRAME_MIKROTIK_LABEL)
+        layout.addWidget(vendorLabel, 0, Qt.AlignTop)
         # End Region
 
         img = QImage(self.appctxt.get_resource("outline_play_circle_outline_black_18dp.png"))
@@ -293,7 +308,7 @@ class MainWindowGui(QMainWindow):
 
         # Updated by Pinkesh Shah on 05-May-20 to disable Scheduler layout
         # Start Region
-        self.groupBox.setStyleSheet(CSS.CSS_FRAME_GROUP_BOX)
+        # self.groupBox.setStyleSheet(CSS.CSS_FRAME_GROUP_BOX)
         # self.jobsGroupBox.setStyleSheet(CSS.CSS_GROUP_BOX)
         # End Region
 
@@ -328,6 +343,7 @@ class MainWindowGui(QMainWindow):
         # Start Region
         self.groupBox = QGroupBox("")
         self.groupBox.setLayout(self.dock_layout)
+        self.groupBox.setStyleSheet(CSS.CSS_FRAME_GROUP_BOX)
         # self.jobsGroupBox.setLayout(self.dock_layout)
         # End Region
 
@@ -344,6 +360,7 @@ class MainWindowGui(QMainWindow):
         # End Region
 
         self.dock_widget = QScrollArea()
+        self.dock_widget.setStyleSheet(CSS.CSS_SCROLLBAR)
 
         # Updated by Pinkesh Shah on 05-May-20 to disable Scheduler layout
         # Start Region
@@ -356,7 +373,7 @@ class MainWindowGui(QMainWindow):
         # Updated by Pinkesh Shah on 28-Apr-20
         # Start Region
         self.dock_widget.setMinimumWidth(270)
-        self.dock_widget.setMaximumWidth(275)
+        self.dock_widget.setMaximumWidth(400)
         self.dock_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         # End Region
         
@@ -491,3 +508,11 @@ class MainWindowGui(QMainWindow):
                 if frame.property(NAME) == self.tabview.tabText(i):
                     self.tabview.setCurrentIndex(i)
         # End Region
+
+
+if __name__ == '__main__':
+    appctxt = ApplicationContext()       # 1. Instantiate ApplicationContext
+    window = MainWindowGui()
+    window.show()
+    exit_code = appctxt.app.exec_()      # 2. Invoke appctxt.app.exec_()
+    sys.exit(exit_code)
