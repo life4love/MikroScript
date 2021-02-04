@@ -583,7 +583,7 @@ class ScriptExecutor:
         else:
             credObj[USER].setFocus()
 
-    def getExecutorLayout(self):
+    def getLayout(self):
         return self.master_layout
 
     def host_reg_ex(self):

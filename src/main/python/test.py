@@ -1,6 +1,20 @@
-from PyQt5.QtCore import QT_VERSION_STR
-from PyQt5.Qt import PYQT_VERSION_STR
-from sip import SIP_VERSION_STR
-print("Qt version:", QT_VERSION_STR)
-print("SIP version:", SIP_VERSION_STR)
-print("PyQt version:", PYQT_VERSION_STR)
+class Parent:
+    def makeChildrenStopCry(self):
+        if self.cry():
+            self.doWhateverToStopCry()
+
+class Children(Parent):
+    crying = False
+    def makeCry(self):
+        self.crying = True
+    def doWhateverToStopCry(self):
+        self.crying = False
+    def cry(self):
+        return self.crying
+
+
+child = Children()
+child.makeCry()
+print(child.crying)
+child.makeChildrenStopCry()
+print(child.crying)

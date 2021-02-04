@@ -9,17 +9,13 @@ from PyQt5.QtWidgets import (QStatusBar, QTabWidget, QMainWindow,
                              QToolBar, QToolButton, QDockWidget, QAction,
                              QApplication, QStyleFactory, QWidget, QPushButton, QGraphicsView, QListView, QHBoxLayout,
                              QVBoxLayout, QFrame, QLabel, QScrollArea, QAbstractScrollArea, QGroupBox, QDialog,
-                             QSpacerItem, QSizePolicy, QTreeView, QMessageBox)
-from fbs_runtime.application_context.PyQt5 import ApplicationContext
+                             QSpacerItem, QSizePolicy, QTreeView, QMessageBox, QComboBox)
 
 from ScriptExecutor import ScriptExecutor
 import CSS
-# from CustumTabWidget import CustomTabWidget
-from component.BQLineEdit import BQLineEdit
 from save_window import SaveWindow
 
 from fbs_runtime.application_context.PyQt5 import ApplicationContext
-# from MainWindow import MainWindowGui
 
 import sys
 
@@ -40,7 +36,7 @@ class MainWindowGui(QMainWindow):
         self.setWindowTitle("MikroScript")
         self.setStyleSheet(COLOR_BG)
         self.resize(1128, 768)
-        self.setMinimumSize(800,600)
+        self.setMinimumSize(1128, 768)
         self.setWindowIcon(QIcon(self.appctxt.get_resource("favicon.png")))
 
         # Updated by Pinkesh Shah on 29-Apr-20
@@ -87,44 +83,6 @@ class MainWindowGui(QMainWindow):
         self.setCentralWidget(self.tabview)
         self.ActionNew()
         self.get_job_list()
-
-    def ActionNew(self, name=None):
-
-        try:
-            self.tabCtr += 1
-            tab = QWidget()
-            ## tab.setStyleSheet(CSS.CSS_TAB_BASE)
-            ## tab.setStyleSheet("{ border-style: solid; background-color:#FBFBFB }")
-            center = ScriptExecutor()
-            result = center.getExecutorLayout()
-
-            tab.setLayout(result)
-            tab.setProperty("OBJECT", center)
-            tab.setProperty("TAB_CTR", self.tabCtr)
-            tab.setProperty("NAME", "")
-            tab.setProperty("_ID", 0)
-            # center.getFirstWidget().setFocus(Qt.ActiveWindowFocusReason)
-            if name == None:
-                name = "Untitled " + str(self.tabCtr)
-            self.tabview.addTab(tab, name)
-            self.tabview.setCurrentWidget(tab)
-            center.host.setFocus()
-        except Exception:
-            raise
-        return tab
-
-    def removeTab(self, index):
-        tab = self.tabview.widget(index)
-
-        # Updated by Pinkesh Shah on 30-Apr-20
-        # Start Region
-        tab_Name = self.tabview.tabText(index)
-        self.activeJobTabs.remove(tab_Name)
-        # End Region
-
-        if tab is not None:
-            tab = None
-            self.tabview.removeTab(index)
 
     def createMenuBar(self):
 
@@ -222,12 +180,12 @@ class MainWindowGui(QMainWindow):
         toolbtnReset.setDefaultAction(actReset)
         toolbtnReset.setToolTip("Reset")
 
-        # styleComboBox = QComboBox()
-        # styleComboBox.addItems(QStyleFactory.keys())
+        styleComboBox = QComboBox()
+        styleComboBox.addItems(QStyleFactory.keys())
 
-        # styleLabel = QLabel("&Style:")
-        # styleLabel.setBuddy(styleComboBox)
-        # styleComboBox.activated[str].connect(self.changeStyle)
+        styleLabel = QLabel("&Style:")
+        styleLabel.setBuddy(styleComboBox)
+        styleComboBox.activated[str].connect(self.changeStyle)
 
         self.toolBar = QToolBar()
         self.toolBar.addWidget(toolbtnNew)
@@ -238,8 +196,9 @@ class MainWindowGui(QMainWindow):
         self.toolBar.addWidget(toolbtnPause)
         self.toolBar.addWidget(toolbtnStop)
         self.toolBar.addWidget(toolbtnReset)
-        self.toolBar.setMovable(False)
         self.toolBar.addSeparator()
+        self.toolBar.addWidget(styleComboBox)
+        self.toolBar.setMovable(False)
         # toolBar.addWidget(styleLabel)
         # toolBar.addWidget(styleComboBox)
         self.addToolBar(self.toolBar)
@@ -403,6 +362,33 @@ class MainWindowGui(QMainWindow):
         status = QStatusBar()
         self.setStatusBar(status)
 
+    ################## Action starts from here #########################################
+
+    def ActionNew(self, varobj=None, name=None):
+
+        try:
+            self.tabCtr += 1
+            tab = QWidget()
+            ## tab.setStyleSheet(CSS.CSS_TAB_BASE)
+            ## tab.setStyleSheet("{ border-style: solid; background-color:#FBFBFB }")
+            executor = ScriptExecutor()
+
+            tab.setLayout(executor.getLayout())
+            tab.setProperty("OBJECT", executor)
+            tab.setProperty("TAB_CTR", self.tabCtr)
+            tab.setProperty("NAME", "")
+            tab.setProperty("_ID", 0)
+            # center.getFirstWidget().setFocus(Qt.ActiveWindowFocusReason)
+            if name == None:
+                name = "Untitled " + str(self.tabCtr)
+            print(varobj, name)
+            self.tabview.addTab(tab, name)
+            self.tabview.setCurrentWidget(tab)
+            executor.host.setFocus()
+        except Exception:
+            raise
+        return tab
+
     def ActionOpen(self):
         print("Open")
 
@@ -454,6 +440,19 @@ class MainWindowGui(QMainWindow):
     def changeStyle(self, styleName):
         QApplication.setStyle(QStyleFactory.create(styleName))
         # self.changePalette()
+
+    def removeTab(self, index):
+        tab = self.tabview.widget(index)
+
+        # Updated by Pinkesh Shah on 30-Apr-20
+        # Start Region
+        tab_Name = self.tabview.tabText(index)
+        # self.activeJobTabs.remove(tab_Name)
+        # End Region
+
+        if tab is not None:
+            tab = None
+            self.tabview.removeTab(index)
 
     def create_table(self):
 
